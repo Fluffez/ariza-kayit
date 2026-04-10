@@ -299,16 +299,18 @@ form.addEventListener('submit', async (e) => {
         if (editingId) {
             // Güncelleme
             await database.ref('arizalar/' + editingId).update(arizaData);
+            showToast('Kayıt başarıyla güncellendi', 'success');
         } else {
             // Yeni kayıt
             await database.ref('arizalar').push(arizaData);
+            showToast('Yeni kayıt başarıyla eklendi', 'success');
         }
         form.reset();
         modal.classList.remove('active');
         editingId = null;
     } catch (error) {
         console.error('Hata:', error);
-        alert('İşlem sırasında bir hata oluştu!');
+        showToast('İşlem sırasında bir hata oluştu!', 'error');
     }
 });
 
@@ -397,9 +399,18 @@ function durumMetni(durum) {
 function durumDegistir(id, yeniDurum) {
     database.ref('arizalar/' + id).update({
         durum: yeniDurum
-    }).catch(error => {
+    })
+    .then(() => {
+        const durumMetinleri = {
+            'beklemede': 'Beklemede',
+            'devam-ediyor': 'Devam Ediyor',
+            'tamamlandi': 'Tamamlandı'
+        };
+        showToast(`Durum "${durumMetinleri[yeniDurum]}" olarak güncellendi`, 'success');
+    })
+    .catch(error => {
         console.error('Hata:', error);
-        alert('Durum güncellenirken bir hata oluştu!');
+        showToast('Durum güncellenirken bir hata oluştu!', 'error');
     });
 }
 
@@ -422,15 +433,54 @@ function duzenle(id) {
 }
 
 // Sil - Global fonksiyon
+let deleteCallback = null;
+
 window.silArizaKaydi = function(id) {
-    if (confirm('Bu arıza kaydını silmek istediğinizden emin misiniz?')) {
+    const confirmModal = document.getElementById('confirm-modal');
+    confirmModal.classList.add('active');
+    
+    deleteCallback = () => {
         database.ref('arizalar/' + id).remove()
             .then(() => {
-                console.log('Kayıt silindi');
+                showToast('Kayıt başarıyla silindi', 'success');
             })
             .catch(error => {
                 console.error('Hata:', error);
-                alert('Kayıt silinirken bir hata oluştu!');
+                showToast('Kayıt silinirken bir hata oluştu!', 'error');
             });
+    };
+}
+
+// Confirmation modal kontrolleri
+document.getElementById('confirm-yes').addEventListener('click', () => {
+    document.getElementById('confirm-modal').classList.remove('active');
+    if (deleteCallback) {
+        deleteCallback();
+        deleteCallback = null;
     }
+});
+
+document.getElementById('confirm-no').addEventListener('click', () => {
+    document.getElementById('confirm-modal').classList.remove('active');
+    deleteCallback = null;
+});
+
+// Toast notification
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const icons = {
+        success: '✓',
+        error: '✗',
+        warning: '⚠'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.success}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    toast.className = `toast ${type} show`;
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
 }
