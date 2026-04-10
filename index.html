@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Döşemealtı Belediyesi - Bilgi İşlem Arıza Kayıt</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -31,39 +34,53 @@
             </form>
         </div>
     </div>
+
     <!-- Main App -->
     <div id="main-app" class="main-app" style="display: none;">
         <div class="container">
             <header>
                 <div class="header-content">
-                    <div>
                         <h1>Döşemealtı Belediyesi</h1>
-                        <h2>Bilgi İşlem Arıza Kayıt Sistemi</h2>
+                        <h2>Bilgi İşlem Yapılanlar Kayıt Sistemi</h2>
                     </div>
                     <button id="logout-btn" class="btn-logout">Çıkış</button>
                 </div>
             </header>
 
-        <div class="filter-section">
-            <div class="filter-group">
-                <select id="durum-filtre">
-                    <option value="tumu">Tümü</option>
-                    <option value="beklemede">Beklemede</option>
-                    <option value="devam-ediyor">Devam Ediyor</option>
-                    <option value="tamamlandi">Tamamlandı</option>
-                </select>
+            <div class="filter-section">
+                <div class="filter-group">
+                    <select id="durum-filtre">
+                        <option value="tumu">Tümü</option>
+                        <option value="beklemede">Beklemede</option>
+                        <option value="devam-ediyor">Devam Ediyor</option>
+                        <option value="tamamlandi">Tamamlandı</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div id="ariza-listesi" class="ariza-listesi">
-            <div class="loading">Yükleniyor...</div>
-        </div>
-    </div>
-    </div>
-    </div>
+            <div id="ariza-listesi" class="ariza-listesi">
+                <div class="loading">Yükleniyor...</div>
+            </div>
+    <!-- Floating Action Button -->
+    <button id="fab-btn" class="fab-button" style="display: none;">+</button>
 
     <!-- Floating Action Button -->
     <button id="fab-btn" class="fab-button">+</button>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="confirm-modal">
+        <div class="confirm-box">
+            <h3>Emin misiniz?</h3>
+            <p id="confirm-message">Bu arıza kaydını silmek istediğinizden emin misiniz?</p>
+            <div class="confirm-buttons">
+                <button id="confirm-yes" class="btn-confirm btn-confirm-yes">Evet, Sil</button>
+                <button id="confirm-no" class="btn-confirm btn-confirm-no">İptal</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal -->
     <div id="modal" class="modal">
@@ -72,37 +89,16 @@
                 <h3>Yeni Arıza Kaydı</h3>
                 <button id="close-btn" class="close-btn">&times;</button>
             </div>
-            <form id="ariza-form">
+            <form id="ariza-form" novalidate>
                 <div class="form-group">
-                    <label for="birim">Müdürlük</label>
-                    <select id="birim" required>
-                        <option value="">Seçiniz...</option>
-                        <option value="NAR MASA">NAR MASA</option>
-                        <option value="Ruhsat ve Denetim Müdürlüğü">Ruhsat ve Denetim Müdürlüğü</option>
-                        <option value="Evrak Kayıt">Evrak Kayıt</option>
-                        <option value="Zabıta Müdürlüğü">Zabıta Müdürlüğü</option>
-                        <option value="Gelirler Müdürlüğü">Gelirler Müdürlüğü</option>
-                        <option value="Sağlık İşleri Müdürlüğü">Sağlık İşleri Müdürlüğü</option>
-                        <option value="İmar ve Şehircilik Müdürlüğü">İmar ve Şehircilik Müdürlüğü</option>
-                        <option value="Plan ve Proje Müdürlüğü">Plan ve Proje Müdürlüğü</option>
-                        <option value="Bilgi İşlem Müdürlüğü">Bilgi İşlem Müdürlüğü</option>
-                        <option value="Fen İşleri Müdürlüğü">Fen İşleri Müdürlüğü</option>
-                        <option value="Mali Hizmetler Müdürlüğü">Mali Hizmetler Müdürlüğü</option>
-                        <option value="Yazı İşleri Müdürlüğü">Yazı İşleri Müdürlüğü</option>
-                        <option value="Basın Yayın ve Halkla İlişkiler Müdürlüğü">Basın Yayın ve Halkla İlişkiler Müdürlüğü</option>
-                        <option value="Destek Hizmetler Müdürlüğü">Destek Hizmetler Müdürlüğü</option>
-                        <option value="İnsan Kaynakları ve Eğitim Müdürlüğü">İnsan Kaynakları ve Eğitim Müdürlüğü</option>
-                        <option value="Emlak ve İstimlak Müdürlüğü">Emlak ve İstimlak Müdürlüğü</option>
-                        <option value="Muhtarlık İşleri Müdürlüğü">Muhtarlık İşleri Müdürlüğü</option>
-                        <option value="İklim Değişikliği ve Sıfır Atık">İklim Değişikliği ve Sıfır Atık</option>
-                        <option value="Afet İşleri Müdürlüğü">Afet İşleri Müdürlüğü</option>
-                        <option value="Hukuk İşleri Müdürlüğü">Hukuk İşleri Müdürlüğü</option>
-                        <option value="Özel Kalem Müdürlüğü">Özel Kalem Müdürlüğü</option>
-                    </select>
+                    <label for="birim">Müdürlük *</label>
+                    <input type="text" id="birim" required placeholder="Müdürlük adı yazın..." autocomplete="off">
+                    <div id="birim-suggestions" class="suggestions"></div>
+                    <small class="error-message" id="birim-error"></small>
                 </div>
 
                 <div class="form-group">
-                    <label for="cihaz-turu">Cihaz Türü</label>
+                    <label for="cihaz-turu">Cihaz Türü *</label>
                     <select id="cihaz-turu" required>
                         <option value="">Seçiniz...</option>
                         <option value="Bilgisayar">Bilgisayar</option>
@@ -112,10 +108,11 @@
                         <option value="Telefon">Telefon</option>
                         <option value="Diğer">Diğer</option>
                     </select>
+                    <small class="error-message" id="cihaz-error"></small>
                 </div>
 
                 <div class="form-group">
-                    <label for="ariza-turu">Arıza Türü</label>
+                    <label for="ariza-turu">Arıza Türü *</label>
                     <select id="ariza-turu" required>
                         <option value="">Seçiniz...</option>
                         <option value="Donanım">Donanım</option>
@@ -123,16 +120,25 @@
                         <option value="Ağ">Ağ</option>
                         <option value="Kullanıcı Hatası">Kullanıcı Hatası</option>
                     </select>
+                    <small class="error-message" id="ariza-turu-error"></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="talep-eden">Talep Eden *</label>
+                    <input type="text" id="talep-eden" required placeholder="Ad Soyad veya dahili numara" autocomplete="off">
+                    <div id="talep-suggestions" class="suggestions"></div>
+                    <small class="error-message" id="talep-error"></small>
                 </div>
 
                 <div class="form-group">
                     <label for="aciklama">Arıza Açıklaması</label>
-                    <textarea id="aciklama" rows="4" required placeholder="Arıza detaylarını giriniz..."></textarea>
+                    <textarea id="aciklama" rows="3" placeholder="Arıza detaylarını giriniz..."></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="talep-eden">Talep Eden</label>
-                    <input type="text" id="talep-eden" required placeholder="Ad Soyad">
+                    <label for="yapilan-isler">Yapılan İşler *</label>
+                    <textarea id="yapilan-isler" rows="3" required placeholder="Yapılan işlemleri giriniz..."></textarea>
+                    <small class="error-message" id="yapilan-error"></small>
                 </div>
 
                 <button type="submit" class="btn-primary">Kaydet</button>
