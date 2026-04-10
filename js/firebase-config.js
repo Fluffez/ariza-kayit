@@ -1,15 +1,13 @@
 // Firebase yapılandırması
-// Firebase Console'dan alacağınız bilgileri buraya ekleyin
-// https://console.firebase.google.com/
-
 const firebaseConfig = {
-    apiKey: "BURAYA_API_KEY_EKLEYIN",
-    authDomain: "BURAYA_AUTH_DOMAIN_EKLEYIN",
-    databaseURL: "BURAYA_DATABASE_URL_EKLEYIN",
-    projectId: "BURAYA_PROJECT_ID_EKLEYIN",
-    storageBucket: "BURAYA_STORAGE_BUCKET_EKLEYIN",
-    messagingSenderId: "BURAYA_MESSAGING_SENDER_ID_EKLEYIN",
-    appId: "BURAYA_APP_ID_EKLEYIN"
+    apiKey: "AIzaSyCXqGCyJwHo4lptTrgxWwdB83wv2vN1vwM",
+    authDomain: "dosemealti-adf4c.firebaseapp.com",
+    databaseURL: "https://dosemealti-adf4c-default-rtdb.firebaseio.com",
+    projectId: "dosemealti-adf4c",
+    storageBucket: "dosemealti-adf4c.firebasestorage.app",
+    messagingSenderId: "650450960110",
+    appId: "1:650450960110:web:0acd49cbbf20b9e53a7dff",
+    measurementId: "G-CHLJDVVL10"
 };
 
 // Firebase'i başlat
