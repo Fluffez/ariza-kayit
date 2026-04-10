@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Döşemealtı Belediyesi - Bilgi İşlem Arıza Kayıt</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Döşemealtı Belediyesi</h1>
+            <h2>Bilgi İşlem Arıza Kayıt Sistemi</h2>
+        </header>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <select id="durum-filtre">
+                    <option value="tumu">Tümü</option>
+                    <option value="beklemede">Beklemede</option>
+                    <option value="devam-ediyor">Devam Ediyor</option>
+                    <option value="tamamlandi">Tamamlandı</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="ariza-listesi" class="ariza-listesi">
+            <div class="loading">Yükleniyor...</div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button id="fab-btn" class="fab-button">+</button>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Yeni Arıza Kaydı</h3>
+                <button id="close-btn" class="close-btn">&times;</button>
+            </div>
+            <form id="ariza-form">
+                <div class="form-group">
+                    <label for="birim">Birim</label>
+                    <select id="birim" required>
+                        <option value="">Seçiniz...</option>
+                        <option value="Mali Hizmetler">Mali Hizmetler</option>
+                        <option value="İnsan Kaynakları">İnsan Kaynakları</option>
+                        <option value="Fen İşleri">Fen İşleri</option>
+                        <option value="İmar ve Şehircilik">İmar ve Şehircilik</option>
+                        <option value="Zabıta">Zabıta</option>
+                        <option value="Temizlik İşleri">Temizlik İşleri</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cihaz-turu">Cihaz Türü</label>
+                    <select id="cihaz-turu" required>
+                        <option value="">Seçiniz...</option>
+                        <option value="Bilgisayar">Bilgisayar</option>
+                        <option value="Yazıcı">Yazıcı</option>
+                        <option value="Tarayıcı">Tarayıcı</option>
+                        <option value="Ağ Cihazı">Ağ Cihazı</option>
+                        <option value="Telefon">Telefon</option>
+                        <option value="Diğer">Diğer</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ariza-turu">Arıza Türü</label>
+                    <select id="ariza-turu" required>
+                        <option value="">Seçiniz...</option>
+                        <option value="Donanım">Donanım</option>
+                        <option value="Yazılım">Yazılım</option>
+                        <option value="Ağ">Ağ</option>
+                        <option value="Kullanıcı Hatası">Kullanıcı Hatası</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="aciklama">Arıza Açıklaması</label>
+                    <textarea id="aciklama" rows="4" required placeholder="Arıza detaylarını giriniz..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="talep-eden">Talep Eden</label>
+                    <input type="text" id="talep-eden" required placeholder="Ad Soyad">
+                </div>
+
+                <div class="form-group">
+                    <label for="telefon">Telefon</label>
+                    <input type="tel" id="telefon" required placeholder="0555 555 55 55">
+                </div>
+
+                <button type="submit" class="btn-primary">Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
