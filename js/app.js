@@ -110,12 +110,14 @@ logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('rememberedUser');
     loginScreen.style.display = 'flex';
     mainApp.style.display = 'none';
+    fabBtn.style.display = 'none'; // FAB'ı gizle
     loginForm.reset();
 });
 
 function showMainApp() {
     loginScreen.style.display = 'none';
     mainApp.style.display = 'block';
+    fabBtn.style.display = 'block'; // FAB'ı göster
     arizalariYukle();
 }
 
