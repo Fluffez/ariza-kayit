@@ -505,12 +505,17 @@ function duzenle(id) {
         const ariza = snapshot.val();
         if (ariza) {
             editingId = id;
-            document.getElementById('birim').value = ariza.birim;
-            document.getElementById('cihaz-turu').value = ariza.cihazTuru;
-            document.getElementById('ariza-turu').value = ariza.arizaTuru;
+            document.getElementById('birim').value = ariza.birim || '';
+            document.getElementById('cihaz-turu').value = ariza.cihazTuru || '';
+            document.getElementById('ariza-turu').value = ariza.arizaTuru || '';
             document.getElementById('aciklama').value = ariza.aciklama || '';
             document.getElementById('yapilan-isler').value = ariza.yapilanIsler || '';
-            document.getElementById('talep-eden').value = ariza.talepEden;
+            document.getElementById('talep-eden').value = ariza.talepEden || '';
+            
+            // Hata mesajlarını temizle
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+            
             document.querySelector('.modal-header h3').textContent = 'Arıza Kaydını Düzenle';
             modal.classList.add('active');
         }
@@ -521,16 +526,19 @@ function duzenle(id) {
 let deleteCallback = null;
 
 window.silArizaKaydi = function(id) {
+    console.log('Silme işlemi başlatıldı, ID:', id);
     const confirmModal = document.getElementById('confirm-modal');
     confirmModal.classList.add('active');
     
     deleteCallback = () => {
+        console.log('Silme onaylandı, siliniyor...');
         database.ref('arizalar/' + id).remove()
             .then(() => {
+                console.log('Kayıt başarıyla silindi');
                 showToast('Kayıt başarıyla silindi', 'success');
             })
             .catch(error => {
-                console.error('Hata:', error);
+                console.error('Silme hatası:', error);
                 showToast('Kayıt silinirken bir hata oluştu!', 'error');
             });
     };
@@ -538,14 +546,18 @@ window.silArizaKaydi = function(id) {
 
 // Confirmation modal kontrolleri
 document.getElementById('confirm-yes').addEventListener('click', () => {
+    console.log('Evet butonuna tıklandı');
     document.getElementById('confirm-modal').classList.remove('active');
     if (deleteCallback) {
         deleteCallback();
         deleteCallback = null;
+    } else {
+        console.log('deleteCallback bulunamadı!');
     }
 });
 
 document.getElementById('confirm-no').addEventListener('click', () => {
+    console.log('İptal butonuna tıklandı');
     document.getElementById('confirm-modal').classList.remove('active');
     deleteCallback = null;
 });
