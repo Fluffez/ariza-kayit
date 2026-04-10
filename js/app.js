@@ -76,6 +76,7 @@ const loginScreen = document.getElementById('login-screen');
 const mainApp = document.getElementById('main-app');
 const loginForm = document.getElementById('login-form');
 const logoutBtn = document.getElementById('logout-btn');
+const fabBtn = document.getElementById('fab-btn');
 
 // Sayfa yüklendiğinde login kontrolü
 window.addEventListener('DOMContentLoaded', () => {
@@ -123,7 +124,6 @@ function showMainApp() {
 
 // DOM elementleri
 const modal = document.getElementById('modal');
-const fabBtn = document.getElementById('fab-btn');
 const closeBtn = document.getElementById('close-btn');
 const form = document.getElementById('ariza-form');
 const arizaListesi = document.getElementById('ariza-listesi');
