@@ -277,13 +277,95 @@ modal.addEventListener('click', (e) => {
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    // Validasyon
+    let isValid = true;
+    
+    // Müdürlük kontrolü
+    const birimValue = document.getElementById('birim').value.trim();
+    const birimError = document.getElementById('birim-error');
+    const birimInput = document.getElementById('birim');
+    
+    if (!birimValue) {
+        birimError.textContent = 'Lütfen müdürlük seçiniz';
+        birimInput.classList.add('error');
+        isValid = false;
+    } else if (!mudurlukler.includes(birimValue)) {
+        birimError.textContent = 'Lütfen listeden bir müdürlük seçiniz';
+        birimInput.classList.add('error');
+        isValid = false;
+    } else {
+        birimError.textContent = '';
+        birimInput.classList.remove('error');
+    }
+    
+    // Cihaz türü kontrolü
+    const cihazValue = document.getElementById('cihaz-turu').value;
+    const cihazError = document.getElementById('cihaz-error');
+    const cihazInput = document.getElementById('cihaz-turu');
+    
+    if (!cihazValue) {
+        cihazError.textContent = 'Lütfen cihaz türü seçiniz';
+        cihazInput.classList.add('error');
+        isValid = false;
+    } else {
+        cihazError.textContent = '';
+        cihazInput.classList.remove('error');
+    }
+    
+    // Arıza türü kontrolü
+    const arizaTuruValue = document.getElementById('ariza-turu').value;
+    const arizaTuruError = document.getElementById('ariza-turu-error');
+    const arizaTuruInput = document.getElementById('ariza-turu');
+    
+    if (!arizaTuruValue) {
+        arizaTuruError.textContent = 'Lütfen arıza türü seçiniz';
+        arizaTuruInput.classList.add('error');
+        isValid = false;
+    } else {
+        arizaTuruError.textContent = '';
+        arizaTuruInput.classList.remove('error');
+    }
+    
+    // Talep eden kontrolü
+    const talepValue = document.getElementById('talep-eden').value.trim();
+    const talepError = document.getElementById('talep-error');
+    const talepInput = document.getElementById('talep-eden');
+    
+    if (!talepValue) {
+        talepError.textContent = 'Lütfen talep eden bilgisini giriniz';
+        talepInput.classList.add('error');
+        isValid = false;
+    } else {
+        talepError.textContent = '';
+        talepInput.classList.remove('error');
+    }
+    
+    // Yapılan işler kontrolü
+    const yapilanValue = document.getElementById('yapilan-isler').value.trim();
+    const yapilanError = document.getElementById('yapilan-error');
+    const yapilanInput = document.getElementById('yapilan-isler');
+    
+    if (!yapilanValue) {
+        yapilanError.textContent = 'Lütfen yapılan işleri giriniz';
+        yapilanInput.classList.add('error');
+        isValid = false;
+    } else {
+        yapilanError.textContent = '';
+        yapilanInput.classList.remove('error');
+    }
+    
+    if (!isValid) {
+        showToast('Lütfen tüm zorunlu alanları doldurunuz', 'error');
+        return;
+    }
+    
     const arizaData = {
-        birim: document.getElementById('birim').value,
+        birim: birimValue,
         cihazTuru: document.getElementById('cihaz-turu').value,
         arizaTuru: document.getElementById('ariza-turu').value,
-        aciklama: document.getElementById('aciklama').value || '',
-        yapilanIsler: document.getElementById('yapilan-isler').value,
-        talepEden: document.getElementById('talep-eden').value,
+        aciklama: document.getElementById('aciklama').value.trim() || '',
+        yapilanIsler: yapilanValue,
+        talepEden: talepValue,
         durum: editingId ? undefined : 'beklemede',
         tarih: new Date().toLocaleString('tr-TR', {
             year: 'numeric',
@@ -306,6 +388,9 @@ form.addEventListener('submit', async (e) => {
             showToast('Yeni kayıt başarıyla eklendi', 'success');
         }
         form.reset();
+        // Hata mesajlarını temizle
+        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
         modal.classList.remove('active');
         editingId = null;
     } catch (error) {

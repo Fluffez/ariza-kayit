@@ -235,6 +235,20 @@ header h2 {
     font-size: 14px;
 }
 
+.error-message {
+    display: block;
+    color: #fc8181;
+    font-size: 12px;
+    margin-top: 5px;
+    min-height: 16px;
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+    border-color: #fc8181;
+}
+
 .form-group input,
 .form-group select {
     width: 100%;
