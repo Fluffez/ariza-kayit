@@ -1,3 +1,31 @@
+// Müdürlükler listesi
+const mudurlukler = [
+    "NAR MASA",
+    "Ruhsat ve Denetim Müdürlüğü",
+    "Evrak Kayıt",
+    "Zabıta Müdürlüğü",
+    "Gelirler Müdürlüğü",
+    "Sağlık İşleri Müdürlüğü",
+    "İmar ve Şehircilik Müdürlüğü",
+    "Plan ve Proje Müdürlüğü",
+    "Bilgi İşlem Müdürlüğü",
+    "Fen İşleri Müdürlüğü",
+    "Mali Hizmetler Müdürlüğü",
+    "Yazı İşleri Müdürlüğü",
+    "Basın Yayın ve Halkla İlişkiler Müdürlüğü",
+    "Destek Hizmetler Müdürlüğü",
+    "İnsan Kaynakları ve Eğitim Müdürlüğü",
+    "Emlak ve İstimlak Müdürlüğü",
+    "Muhtarlık İşleri Müdürlüğü",
+    "İklim Değişikliği ve Sıfır Atık",
+    "Afet İşleri Müdürlüğü",
+    "Hukuk İşleri Müdürlüğü",
+    "Özel Kalem Müdürlüğü"
+];
+
+// Talep edenler listesi (Firebase'den otomatik toplanacak)
+let talepEdenler = [];
+
 // Login kontrolü
 const loginScreen = document.getElementById('login-screen');
 const mainApp = document.getElementById('main-app');
@@ -44,6 +72,7 @@ function showMainApp() {
     loginScreen.style.display = 'none';
     mainApp.style.display = 'block';
     arizalariYukle();
+    talepEdenleriYukle();
 }
 
 // DOM elementleri
@@ -55,6 +84,128 @@ const arizaListesi = document.getElementById('ariza-listesi');
 const durumFiltre = document.getElementById('durum-filtre');
 
 let editingId = null;
+
+// Autocomplete için
+const birimInput = document.getElementById('birim');
+const birimSuggestions = document.getElementById('birim-suggestions');
+const talepInput = document.getElementById('talep-eden');
+const talepSuggestions = document.getElementById('talep-suggestions');
+
+let currentFocus = -1;
+
+// Müdürlük autocomplete
+birimInput.addEventListener('input', function() {
+    const value = this.value.toLowerCase();
+    currentFocus = -1;
+    
+    if (!value) {
+        birimSuggestions.classList.remove('active');
+        return;
+    }
+    
+    const filtered = mudurlukler.filter(m => 
+        m.toLowerCase().includes(value)
+    );
+    
+    if (filtered.length > 0) {
+        birimSuggestions.innerHTML = filtered.map(m => 
+            `<div class="suggestion-item" data-value="${m}">${m}</div>`
+        ).join('');
+        birimSuggestions.classList.add('active');
+        
+        // Click event
+        birimSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                birimInput.value = this.dataset.value;
+                birimSuggestions.classList.remove('active');
+            });
+        });
+    } else {
+        birimSuggestions.classList.remove('active');
+    }
+});
+
+// Talep eden autocomplete
+talepInput.addEventListener('input', function() {
+    const value = this.value.toLowerCase();
+    currentFocus = -1;
+    
+    if (!value || value.length < 2) {
+        talepSuggestions.classList.remove('active');
+        return;
+    }
+    
+    const filtered = talepEdenler.filter(t => 
+        t.toLowerCase().includes(value)
+    );
+    
+    if (filtered.length > 0) {
+        talepSuggestions.innerHTML = filtered.map(t => 
+            `<div class="suggestion-item" data-value="${t}">${t}</div>`
+        ).join('');
+        talepSuggestions.classList.add('active');
+        
+        // Click event
+        talepSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                talepInput.value = this.dataset.value;
+                talepSuggestions.classList.remove('active');
+            });
+        });
+    } else {
+        talepSuggestions.classList.remove('active');
+    }
+});
+
+// Keyboard navigation
+function handleKeyDown(e, input, suggestions) {
+    const items = suggestions.querySelectorAll('.suggestion-item');
+    
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentFocus++;
+        if (currentFocus >= items.length) currentFocus = 0;
+        setActive(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentFocus--;
+        if (currentFocus < 0) currentFocus = items.length - 1;
+        setActive(items);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentFocus > -1 && items[currentFocus]) {
+            input.value = items[currentFocus].dataset.value;
+            suggestions.classList.remove('active');
+            currentFocus = -1;
+        }
+    } else if (e.key === 'Escape') {
+        suggestions.classList.remove('active');
+        currentFocus = -1;
+    }
+}
+
+function setActive(items) {
+    items.forEach((item, index) => {
+        item.classList.remove('highlighted');
+        if (index === currentFocus) {
+            item.classList.add('highlighted');
+            item.scrollIntoView({ block: 'nearest' });
+        }
+    });
+}
+
+birimInput.addEventListener('keydown', (e) => handleKeyDown(e, birimInput, birimSuggestions));
+talepInput.addEventListener('keydown', (e) => handleKeyDown(e, talepInput, talepSuggestions));
+
+// Click outside to close
+document.addEventListener('click', (e) => {
+    if (!birimInput.contains(e.target) && !birimSuggestions.contains(e.target)) {
+        birimSuggestions.classList.remove('active');
+    }
+    if (!talepInput.contains(e.target) && !talepSuggestions.contains(e.target)) {
+        talepSuggestions.classList.remove('active');
+    }
+});
 
 // Modal kontrolleri
 fabBtn.addEventListener('click', () => {
@@ -86,7 +237,8 @@ form.addEventListener('submit', async (e) => {
         birim: document.getElementById('birim').value,
         cihazTuru: document.getElementById('cihaz-turu').value,
         arizaTuru: document.getElementById('ariza-turu').value,
-        aciklama: document.getElementById('aciklama').value,
+        aciklama: document.getElementById('aciklama').value || '',
+        yapilanIsler: document.getElementById('yapilan-isler').value,
         talepEden: document.getElementById('talep-eden').value,
         durum: editingId ? undefined : 'beklemede',
         tarih: new Date().toLocaleString('tr-TR', {
@@ -120,6 +272,20 @@ form.addEventListener('submit', async (e) => {
 durumFiltre.addEventListener('change', () => {
     arizalariYukle();
 });
+
+// Talep edenleri yükle
+function talepEdenleriYukle() {
+    database.ref('arizalar').on('value', (snapshot) => {
+        const uniqueNames = new Set();
+        snapshot.forEach((childSnapshot) => {
+            const ariza = childSnapshot.val();
+            if (ariza.talepEden) {
+                uniqueNames.add(ariza.talepEden);
+            }
+        });
+        talepEdenler = Array.from(uniqueNames).sort();
+    });
+}
 
 // Arızaları yükle
 function arizalariYukle() {
@@ -171,7 +337,8 @@ function arizalariGoster(arizalar) {
                 <div class="info-item"><strong>Talep Eden:</strong> ${ariza.talepEden}</div>
                 <div class="info-item"><strong>Tarih:</strong> ${ariza.tarih}</div>
             </div>
-            <div class="ariza-aciklama">${ariza.aciklama}</div>
+            ${ariza.aciklama ? `<div class="ariza-aciklama"><strong>Arıza:</strong> ${ariza.aciklama}</div>` : ''}
+            ${ariza.yapilanIsler ? `<div class="ariza-aciklama"><strong>Yapılan İşler:</strong> ${ariza.yapilanIsler}</div>` : ''}
             <div class="ariza-actions">
                 ${ariza.durum === 'beklemede' ? 
                     `<button class="btn-small btn-devam" onclick="durumDegistir('${ariza.id}', 'devam-ediyor')">Devam Ediyor</button>` 
@@ -215,7 +382,8 @@ function duzenle(id) {
             document.getElementById('birim').value = ariza.birim;
             document.getElementById('cihaz-turu').value = ariza.cihazTuru;
             document.getElementById('ariza-turu').value = ariza.arizaTuru;
-            document.getElementById('aciklama').value = ariza.aciklama;
+            document.getElementById('aciklama').value = ariza.aciklama || '';
+            document.getElementById('yapilan-isler').value = ariza.yapilanIsler || '';
             document.getElementById('talep-eden').value = ariza.talepEden;
             document.querySelector('.modal-header h3').textContent = 'Arıza Kaydını Düzenle';
             modal.classList.add('active');
