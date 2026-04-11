@@ -153,34 +153,60 @@ function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
+    // Türkçe karakter desteği için font ayarı
+    doc.setLanguage("tr");
+    
     // Başlık
     doc.setFontSize(16);
-    doc.text('Döşemealtı Belediyesi', 105, 15, { align: 'center' });
+    doc.text('Dosemealti Belediyesi', 105, 15, { align: 'center' });
     doc.setFontSize(12);
-    doc.text('Bilgi İşlem Arıza Kayıtları', 105, 22, { align: 'center' });
+    doc.text('Bilgi Islem Ariza Kayitlari', 105, 22, { align: 'center' });
     doc.setFontSize(10);
     doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 105, 28, { align: 'center' });
     
     // İstatistikler
+    const beklemede = tumArizalar.filter(a => a.durum === 'beklemede').length;
+    const devamEdiyor = tumArizalar.filter(a => a.durum === 'devam-ediyor').length;
+    const tamamlandi = tumArizalar.filter(a => a.durum === 'tamamlandi').length;
+    
     doc.setFontSize(10);
-    doc.text(`Toplam: ${tumArizalar.length} | Beklemede: ${tumArizalar.filter(a => a.durum === 'beklemede').length} | Devam Ediyor: ${tumArizalar.filter(a => a.durum === 'devam-ediyor').length} | Tamamlandı: ${tumArizalar.filter(a => a.durum === 'tamamlandi').length}`, 105, 35, { align: 'center' });
+    doc.text(`Toplam: ${tumArizalar.length} | Beklemede: ${beklemede} | Devam Ediyor: ${devamEdiyor} | Tamamlandi: ${tamamlandi}`, 105, 35, { align: 'center' });
+    
+    // Türkçe karakterleri değiştir
+    const turkishToEnglish = (text) => {
+        if (!text) return '';
+        return text
+            .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+            .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+            .replace(/ş/g, 's').replace(/Ş/g, 'S')
+            .replace(/ı/g, 'i').replace(/İ/g, 'I')
+            .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+            .replace(/ç/g, 'c').replace(/Ç/g, 'C');
+    };
     
     // Tablo
     const tableData = tumArizalar.map(ariza => [
         ariza.id.substring(0, 8),
-        ariza.birim,
-        ariza.cihazTuru,
-        ariza.talepEden,
-        durumMetni(ariza.durum),
+        turkishToEnglish(ariza.birim),
+        turkishToEnglish(ariza.cihazTuru),
+        turkishToEnglish(ariza.talepEden),
+        turkishToEnglish(durumMetni(ariza.durum)),
         ariza.tarih
     ]);
     
     doc.autoTable({
         startY: 40,
-        head: [['ID', 'Müdürlük', 'Cihaz', 'Talep Eden', 'Durum', 'Tarih']],
+        head: [['ID', 'Mudurluk', 'Cihaz', 'Talep Eden', 'Durum', 'Tarih']],
         body: tableData,
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [102, 126, 234] }
+        styles: { 
+            fontSize: 8,
+            font: 'helvetica'
+        },
+        headStyles: { 
+            fillColor: [102, 126, 234],
+            font: 'helvetica',
+            fontStyle: 'bold'
+        }
     });
     
     const tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');

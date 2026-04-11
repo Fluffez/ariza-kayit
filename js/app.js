@@ -144,6 +144,12 @@ birimInput.addEventListener('input', function() {
     const value = this.value.toLowerCase();
     currentFocus = -1;
     
+    // Kırmızılığı kaldır
+    if (value) {
+        this.classList.remove('error');
+        document.getElementById('birim-error').textContent = '';
+    }
+    
     if (!value) {
         birimSuggestions.classList.remove('active');
         return;
@@ -164,6 +170,8 @@ birimInput.addEventListener('input', function() {
             item.addEventListener('click', function() {
                 birimInput.value = this.dataset.value;
                 birimSuggestions.classList.remove('active');
+                birimInput.classList.remove('error');
+                document.getElementById('birim-error').textContent = '';
             });
         });
     } else {
@@ -175,6 +183,12 @@ birimInput.addEventListener('input', function() {
 talepInput.addEventListener('input', function() {
     const value = this.value.toLowerCase();
     currentFocus = -1;
+    
+    // Kırmızılığı kaldır
+    if (value) {
+        this.classList.remove('error');
+        document.getElementById('talep-error').textContent = '';
+    }
     
     if (!value || value.length < 1) {
         talepSuggestions.classList.remove('active');
@@ -196,6 +210,8 @@ talepInput.addEventListener('input', function() {
             item.addEventListener('click', function() {
                 talepInput.value = this.dataset.value;
                 talepSuggestions.classList.remove('active');
+                talepInput.classList.remove('error');
+                document.getElementById('talep-error').textContent = '';
             });
         });
     } else {
@@ -257,8 +273,33 @@ document.addEventListener('click', (e) => {
 fabBtn.addEventListener('click', () => {
     editingId = null;
     form.reset();
+    // Hata mesajlarını ve stilleri temizle
+    document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
     document.querySelector('.modal-header h3').textContent = 'Yeni Arıza Kaydı';
     modal.classList.add('active');
+});
+
+// Select ve textarea değişikliklerinde kırmızılığı kaldır
+document.getElementById('cihaz-turu')?.addEventListener('change', function() {
+    if (this.value) {
+        this.classList.remove('error');
+        document.getElementById('cihaz-error').textContent = '';
+    }
+});
+
+document.getElementById('ariza-turu')?.addEventListener('change', function() {
+    if (this.value) {
+        this.classList.remove('error');
+        document.getElementById('ariza-turu-error').textContent = '';
+    }
+});
+
+document.getElementById('yapilan-isler')?.addEventListener('input', function() {
+    if (this.value.trim()) {
+        this.classList.remove('error');
+        document.getElementById('yapilan-error').textContent = '';
+    }
 });
 
 closeBtn.addEventListener('click', () => {
@@ -393,7 +434,7 @@ form.addEventListener('submit', async (e) => {
             playSound('success');
         }
         form.reset();
-        // Hata mesajlarını temizle
+        // Hata mesajlarını ve stilleri temizle
         document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
         document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
         modal.classList.remove('active');
