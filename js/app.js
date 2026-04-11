@@ -81,8 +81,13 @@ const fabBtn = document.getElementById('fab-btn');
 // Sayfa yüklendiğinde login kontrolü
 window.addEventListener('DOMContentLoaded', () => {
     const remembered = localStorage.getItem('rememberedUser');
+    const isAdmin = localStorage.getItem('isAdmin');
+    
     if (remembered === 'true') {
         showMainApp();
+        if (isAdmin === 'true') {
+            document.getElementById('admin-link').style.display = 'inline-block';
+        }
     }
 });
 
@@ -106,13 +111,28 @@ loginForm.addEventListener('submit', (e) => {
         return;
     }
     
-    if (username === 'dosemealti123' && password === 'dosemealti123') {
+    // Admin kontrolü
+    if (username === 'admin' && password === 'admin123') {
+        if (rememberMe) {
+            safeLocalStorageSet('rememberedUser', 'true');
+            safeLocalStorageSet('isAdmin', 'true');
+        } else {
+            localStorage.removeItem('rememberedUser');
+            localStorage.removeItem('isAdmin');
+        }
+        localStorage.setItem('isAdmin', 'true');
+        showMainApp();
+        document.getElementById('admin-link').style.display = 'inline-block';
+        showToast('Admin olarak giriş yapıldı', 'success');
+    } else if (username === 'dosemealti123' && password === 'dosemealti123') {
         if (rememberMe) {
             safeLocalStorageSet('rememberedUser', 'true');
         } else {
             localStorage.removeItem('rememberedUser');
         }
+        localStorage.removeItem('isAdmin');
         showMainApp();
+        showToast('Giriş başarılı', 'success');
     } else {
         showToast('Kullanıcı adı veya şifre hatalı!', 'error');
         // Güvenlik için biraz beklet
@@ -126,9 +146,11 @@ loginForm.addEventListener('submit', (e) => {
 // Logout
 logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('rememberedUser');
+    localStorage.removeItem('isAdmin');
     loginScreen.style.display = 'flex';
     mainApp.style.display = 'none';
-    fabBtn.style.display = 'none'; // FAB'ı gizle
+    fabBtn.style.display = 'none';
+    document.getElementById('admin-link').style.display = 'none';
     loginForm.reset();
 });
 
