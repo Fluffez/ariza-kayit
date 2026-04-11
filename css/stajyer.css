@@ -123,6 +123,29 @@
     margin-bottom: 20px;
 }
 
+.form-readonly {
+    background: #f7fafc !important;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s;
+}
+
+.btn-secondary:hover {
+    opacity: 0.9;
+}
+
 @media (max-width: 968px) {
     .voice-panel {
         grid-template-columns: 1fr;
