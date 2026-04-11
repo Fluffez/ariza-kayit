@@ -32,15 +32,51 @@ function loadAllData() {
 
 // Müdürlükleri yükle
 function loadMudurlukler() {
-    database.ref('mudurlukler').on('value', (snapshot) => {
-        mudurluklerData = [];
-        snapshot.forEach((child) => {
-            mudurluklerData.push({
-                id: child.key,
-                name: child.val().name || child.val()
+    database.ref('mudurlukler').once('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            // İlk yükleme - app.js'deki verileri Firebase'e aktar
+            const defaultMudurlukler = [
+                "NAR MASA",
+                "Ruhsat ve Denetim Müdürlüğü",
+                "Evrak Kayıt",
+                "Zabıta Müdürlüğü",
+                "Gelirler Müdürlüğü",
+                "Sağlık İşleri Müdürlüğü",
+                "İmar ve Şehircilik Müdürlüğü",
+                "Plan ve Proje Müdürlüğü",
+                "Bilgi İşlem Müdürlüğü",
+                "Fen İşleri Müdürlüğü",
+                "Mali Hizmetler Müdürlüğü",
+                "Yazı İşleri Müdürlüğü",
+                "Basın Yayın ve Halkla İlişkiler Müdürlüğü",
+                "Destek Hizmetler Müdürlüğü",
+                "İnsan Kaynakları ve Eğitim Müdürlüğü",
+                "Emlak ve İstimlak Müdürlüğü",
+                "Muhtarlık İşleri Müdürlüğü",
+                "İklim Değişikliği ve Sıfır Atık",
+                "Afet İşleri Müdürlüğü",
+                "Hukuk İşleri Müdürlüğü",
+                "Özel Kalem Müdürlüğü"
+            ];
+            
+            defaultMudurlukler.forEach(name => {
+                database.ref('mudurlukler').push({ name });
             });
+            
+            showToast('Müdürlükler Firebase\'e aktarıldı', 'success');
+        }
+        
+        // Verileri dinle
+        database.ref('mudurlukler').on('value', (snapshot) => {
+            mudurluklerData = [];
+            snapshot.forEach((child) => {
+                mudurluklerData.push({
+                    id: child.key,
+                    name: child.val().name || child.val()
+                });
+            });
+            displayMudurlukler(mudurluklerData);
         });
-        displayMudurlukler(mudurluklerData);
     });
 }
 
@@ -66,15 +102,35 @@ function displayMudurlukler(data) {
 
 // Çalışanları yükle
 function loadCalisanlar() {
-    database.ref('calisanlar').on('value', (snapshot) => {
-        calisanlarData = [];
-        snapshot.forEach((child) => {
-            calisanlarData.push({
-                id: child.key,
-                name: child.val().name || child.val()
+    database.ref('calisanlar').once('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            // İlk yükleme - app.js'deki verileri Firebase'e aktar
+            const defaultCalisanlar = [
+                "1001 - Suzan Ayaz", "1002 - Emine Aysel Atalık", "1003 - Deniz ERBİ", "1010 - Süleyman Çakan",
+                "1011 - Gökhan Gökçe", "1012 - Ebru İpek Akay", "1013 - Havvanur Tekin", "1014 - Ceren Oğuz",
+                "1015 - Berkay Nizam", "1020 - Halil İbrahim Karacin", "1021 - Olcay Altun", "1022 - Cem Şahin",
+                "1023 - İsmet Tolu", "1024 - Hidayet Ayverdi", "1025 - Merve Kıvrak", "1026 - Bayram Ünal",
+                "1027 - Bilal Aktaş", "1030 - Zeliha Yenicil", "1040 - Tarkan Gümüş", "1041 - Sebahattin Ekiz"
+            ];
+            
+            defaultCalisanlar.forEach(name => {
+                database.ref('calisanlar').push({ name });
             });
+            
+            showToast('Çalışanlar Firebase\'e aktarıldı', 'success');
+        }
+        
+        // Verileri dinle
+        database.ref('calisanlar').on('value', (snapshot) => {
+            calisanlarData = [];
+            snapshot.forEach((child) => {
+                calisanlarData.push({
+                    id: child.key,
+                    name: child.val().name || child.val()
+                });
+            });
+            displayCalisanlar(calisanlarData);
         });
-        displayCalisanlar(calisanlarData);
     });
 }
 
@@ -100,15 +156,35 @@ function displayCalisanlar(data) {
 
 // Teknisyenleri yükle
 function loadTeknisyenler() {
-    database.ref('teknisyenler').on('value', (snapshot) => {
-        teknisyenlerData = [];
-        snapshot.forEach((child) => {
-            teknisyenlerData.push({
-                id: child.key,
-                name: child.val().name || child.val()
+    database.ref('teknisyenler').once('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            // İlk yükleme - varsayılan teknisyenler
+            const defaultTeknisyenler = [
+                "Ahmet Yılmaz",
+                "Mehmet Demir",
+                "Ayşe Kaya",
+                "Fatma Şahin",
+                "Ali Çelik"
+            ];
+            
+            defaultTeknisyenler.forEach(name => {
+                database.ref('teknisyenler').push({ name });
             });
+            
+            showToast('Teknisyenler Firebase\'e aktarıldı', 'success');
+        }
+        
+        // Verileri dinle
+        database.ref('teknisyenler').on('value', (snapshot) => {
+            teknisyenlerData = [];
+            snapshot.forEach((child) => {
+                teknisyenlerData.push({
+                    id: child.key,
+                    name: child.val().name || child.val()
+                });
+            });
+            displayTeknisyenler(teknisyenlerData);
         });
-        displayTeknisyenler(teknisyenlerData);
     });
 }
 

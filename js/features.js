@@ -274,13 +274,19 @@ function playSound(type) {
 const atananInput = document.getElementById('atanan-kisi');
 const atananSuggestions = document.getElementById('atanan-suggestions');
 
-const teknisyenler = [
-    "Ahmet Yılmaz",
-    "Mehmet Demir",
-    "Ayşe Kaya",
-    "Fatma Şahin",
-    "Ali Çelik"
-];
+let teknisyenler = [];
+
+// Teknisyenleri Firebase'den yükle
+if (typeof database !== 'undefined') {
+    database.ref('teknisyenler').on('value', (snapshot) => {
+        teknisyenler = [];
+        snapshot.forEach((child) => {
+            const data = child.val();
+            teknisyenler.push(data.name || data);
+        });
+        console.log('Teknisyenler yüklendi:', teknisyenler.length);
+    });
+}
 
 if (atananInput) {
     atananInput.addEventListener('input', function() {
