@@ -8,6 +8,50 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+body.dark-mode .login-box,
+body.dark-mode header,
+body.dark-mode .filter-section,
+body.dark-mode .ariza-item,
+body.dark-mode .modal-content,
+body.dark-mode .confirm-box,
+body.dark-mode .empty-state,
+body.dark-mode .stat-card {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+body.dark-mode .login-header h1,
+body.dark-mode header h1,
+body.dark-mode .modal-header h3,
+body.dark-mode .confirm-box h3,
+body.dark-mode .empty-state h3,
+body.dark-mode .info-item strong {
+    color: #e2e8f0;
+}
+
+body.dark-mode .form-group input,
+body.dark-mode .form-group select,
+body.dark-mode .form-group textarea {
+    background: #1a202c;
+    color: #e2e8f0;
+    border-color: #4a5568;
+}
+
+body.dark-mode .ariza-aciklama {
+    background: #1a202c;
+    color: #cbd5e0;
+}
+
+body.dark-mode .info-item,
+body.dark-mode .checkbox-group label {
+    color: #cbd5e0;
 }
 
 /* Login Screen */
@@ -81,6 +125,49 @@ header {
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+}
+
+/* İstatistikler */
+.stats-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 2.5em;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 2em;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.stat-label {
+    font-size: 0.9em;
+    color: #718096;
+    margin-top: 5px;
 }
 
 .header-content {
@@ -305,11 +392,37 @@ header h2 {
     flex-wrap: wrap;
 }
 
+.filter-group input[type="text"] {
+    flex: 1;
+    min-width: 250px;
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
 .filter-group select {
     padding: 8px 12px;
     border: 2px solid #e2e8f0;
     border-radius: 6px;
     font-size: 14px;
+}
+
+.btn-export {
+    padding: 8px 16px;
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-export:hover {
+    background: #667eea;
+    color: white;
 }
 
 .ariza-listesi {

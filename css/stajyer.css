@@ -1,0 +1,105 @@
+.stajyer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.voice-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.voice-card, .form-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.voice-icon {
+    font-size: 80px;
+    text-align: center;
+    margin: 20px 0;
+    transition: transform 0.3s;
+}
+
+.voice-icon.recording {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.voice-card h3 {
+    text-align: center;
+    color: #2d3748;
+    margin-bottom: 20px;
+}
+
+.btn-voice {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-voice:hover {
+    opacity: 0.9;
+}
+
+.btn-voice.recording {
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+}
+
+.transcript {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 6px;
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.form-card h3 {
+    color: #2d3748;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 968px) {
+    .voice-panel {
+        grid-template-columns: 1fr;
+    }
+}

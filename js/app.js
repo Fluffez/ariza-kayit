@@ -368,6 +368,7 @@ form.addEventListener('submit', async (e) => {
         aciklama: document.getElementById('aciklama').value.trim() || '',
         yapilanIsler: yapilanValue,
         talepEden: talepValue,
+        atananKisi: document.getElementById('atanan-kisi')?.value.trim() || '',
         durum: editingId ? undefined : 'beklemede',
         tarih: new Date().toLocaleString('tr-TR', {
             year: 'numeric',
@@ -384,10 +385,12 @@ form.addEventListener('submit', async (e) => {
             // Güncelleme
             await database.ref('arizalar/' + editingId).update(arizaData);
             showToast('Kayıt başarıyla güncellendi', 'success');
+            playSound('success');
         } else {
             // Yeni kayıt
             await database.ref('arizalar').push(arizaData);
             showToast('Yeni kayıt başarıyla eklendi', 'success');
+            playSound('success');
         }
         form.reset();
         // Hata mesajlarını temizle
@@ -408,26 +411,25 @@ durumFiltre.addEventListener('change', () => {
 
 // Arızaları yükle
 function arizalariYukle() {
-    const filtre = durumFiltre.value;
-    
     database.ref('arizalar').orderByChild('timestamp').on('value', (snapshot) => {
-        const arizalar = [];
+        tumArizalar = [];
         snapshot.forEach((childSnapshot) => {
-            arizalar.push({
+            tumArizalar.push({
                 id: childSnapshot.key,
                 ...childSnapshot.val()
             });
         });
         
         // Tersten sırala (en yeni üstte)
-        arizalar.reverse();
+        tumArizalar.reverse();
+        filtrelenmisArizalar = tumArizalar;
         
-        // Filtrele
-        const filtrelenmis = filtre === 'tumu' 
-            ? arizalar 
-            : arizalar.filter(a => a.durum === filtre);
-        
-        arizalariGoster(filtrelenmis);
+        // Filtreleri uygula
+        if (typeof filtreleriUygula === 'function') {
+            filtreleriUygula();
+        } else {
+            arizalariGoster(tumArizalar);
+        }
     });
 }
 
@@ -458,6 +460,7 @@ function arizalariGoster(arizalar) {
             </div>
             ${ariza.aciklama ? `<div class="ariza-aciklama"><strong>Arıza:</strong> ${ariza.aciklama}</div>` : ''}
             ${ariza.yapilanIsler ? `<div class="ariza-aciklama"><strong>Yapılan İşler:</strong> ${ariza.yapilanIsler}</div>` : ''}
+            ${ariza.atananKisi ? `<div class="ariza-aciklama"><strong>Atanan:</strong> ${ariza.atananKisi}</div>` : ''}
             <div class="ariza-actions">
                 ${ariza.durum === 'beklemede' ? 
                     `<button class="btn-small btn-devam" onclick="durumDegistir('${ariza.id}', 'devam-ediyor')">Devam Ediyor</button>` 
@@ -513,6 +516,9 @@ function duzenle(id) {
             document.getElementById('aciklama').value = ariza.aciklama || '';
             document.getElementById('yapilan-isler').value = ariza.yapilanIsler || '';
             document.getElementById('talep-eden').value = ariza.talepEden || '';
+            if (document.getElementById('atanan-kisi')) {
+                document.getElementById('atanan-kisi').value = ariza.atananKisi || '';
+            }
             
             // Hata mesajlarını temizle
             document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
