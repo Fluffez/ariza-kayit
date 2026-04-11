@@ -37,6 +37,31 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.info-box {
+    background: #e6f2ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #667eea;
+}
+
+.info-box h4 {
+    color: #2d3748;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.info-box ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #4a5568;
+    font-size: 13px;
+}
+
+.info-box li {
+    margin: 5px 0;
+}
+
 .voice-icon {
     font-size: 80px;
     text-align: center;

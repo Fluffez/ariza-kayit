@@ -2,6 +2,7 @@
 let recognition;
 let isRecording = false;
 let fullTranscript = '';
+let recognitionTimeout;
 
 // Web Speech API kontrolü
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -10,6 +11,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'tr-TR';
     recognition.continuous = true;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
 } else {
     alert('Tarayıcınız sesli kayıt özelliğini desteklemiyor. Lütfen Chrome veya Edge kullanın.');
 }
@@ -30,23 +32,65 @@ voiceBtn.addEventListener('click', () => {
 function startRecording() {
     if (!recognition) return;
     
-    isRecording = true;
-    fullTranscript = '';
-    transcript.textContent = '';
-    
-    voiceBtn.textContent = 'Kaydı Durdur';
-    voiceBtn.classList.add('recording');
-    voiceIcon.classList.add('recording');
-    voiceStatus.textContent = 'Dinliyorum...';
-    
-    recognition.start();
+    // Mikrofon izni kontrolü
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+            isRecording = true;
+            fullTranscript = '';
+            transcript.textContent = '';
+            
+            voiceBtn.textContent = 'Kaydı Durdur';
+            voiceBtn.classList.add('recording');
+            voiceIcon.classList.add('recording');
+            voiceStatus.textContent = 'Dinliyorum...';
+            
+            try {
+                recognition.start();
+                
+                // 30 saniye sonra otomatik durdur
+                recognitionTimeout = setTimeout(() => {
+                    if (isRecording) {
+                        stopRecording();
+                        showToast('Kayıt süresi doldu', 'warning');
+                    }
+                }, 30000);
+            } catch (error) {
+                console.error('Başlatma hatası:', error);
+                showToast('Kayıt başlatılamadı. Lütfen tekrar deneyin.', 'error');
+                resetRecording();
+            }
+        })
+        .catch((error) => {
+            console.error('Mikrofon izni hatası:', error);
+            showToast('Mikrofon izni verilmedi. Lütfen tarayıcı ayarlarından mikrofon iznini açın.', 'error');
+        });
+}
+
+function resetRecording() {
+    isRecording = false;
+    voiceBtn.textContent = 'Sesli Kayıt Başlat';
+    voiceBtn.classList.remove('recording');
+    voiceIcon.classList.remove('recording');
+    voiceStatus.textContent = 'Kayıt Başlatmak İçin Tıklayın';
+    if (recognitionTimeout) {
+        clearTimeout(recognitionTimeout);
+    }
 }
 
 function stopRecording() {
     if (!recognition) return;
     
     isRecording = false;
-    recognition.stop();
+    
+    if (recognitionTimeout) {
+        clearTimeout(recognitionTimeout);
+    }
+    
+    try {
+        recognition.stop();
+    } catch (error) {
+        console.error('Durdurma hatası:', error);
+    }
     
     voiceBtn.textContent = 'Sesli Kayıt Başlat';
     voiceBtn.classList.remove('recording');
@@ -54,8 +98,10 @@ function stopRecording() {
     voiceStatus.textContent = 'Kayıt Tamamlandı';
     
     // Metni işle
-    if (fullTranscript) {
+    if (fullTranscript.trim()) {
         processTranscript(fullTranscript);
+    } else {
+        showToast('Hiçbir ses algılanamadı', 'warning');
     }
 }
 
@@ -76,8 +122,44 @@ recognition.onresult = (event) => {
 
 recognition.onerror = (event) => {
     console.error('Ses tanıma hatası:', event.error);
-    stopRecording();
-    showToast('Ses tanıma hatası: ' + event.error, 'error');
+    
+    let errorMessage = 'Ses tanıma hatası';
+    
+    switch(event.error) {
+        case 'network':
+            errorMessage = 'İnternet bağlantısı gerekli. Lütfen bağlantınızı kontrol edin.';
+            break;
+        case 'not-allowed':
+        case 'permission-denied':
+            errorMessage = 'Mikrofon izni verilmedi. Tarayıcı ayarlarından mikrofon iznini açın.';
+            break;
+        case 'no-speech':
+            errorMessage = 'Ses algılanamadı. Lütfen tekrar deneyin.';
+            break;
+        case 'audio-capture':
+            errorMessage = 'Mikrofon bulunamadı veya kullanılamıyor.';
+            break;
+        case 'aborted':
+            errorMessage = 'Kayıt iptal edildi.';
+            break;
+        default:
+            errorMessage = 'Ses tanıma hatası: ' + event.error;
+    }
+    
+    showToast(errorMessage, 'error');
+    resetRecording();
+};
+
+recognition.onend = () => {
+    if (isRecording) {
+        // Otomatik yeniden başlatma (continuous mode için)
+        try {
+            recognition.start();
+        } catch (error) {
+            console.log('Yeniden başlatma hatası:', error);
+            resetRecording();
+        }
+    }
 };
 
 // Metni işle ve formu doldur (Basit AI simülasyonu)
