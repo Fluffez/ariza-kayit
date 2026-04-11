@@ -90,19 +90,36 @@ window.addEventListener('DOMContentLoaded', () => {
 loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
     const rememberMe = document.getElementById('remember-me').checked;
+    
+    // Boş kontrol
+    if (!username || !password) {
+        showToast('Kullanıcı adı ve şifre boş olamaz', 'error');
+        return;
+    }
+    
+    // Uzunluk kontrolü
+    if (username.length > 50 || password.length > 50) {
+        showToast('Kullanıcı adı veya şifre çok uzun', 'error');
+        return;
+    }
     
     if (username === 'dosemealti123' && password === 'dosemealti123') {
         if (rememberMe) {
-            localStorage.setItem('rememberedUser', 'true');
+            safeLocalStorageSet('rememberedUser', 'true');
         } else {
             localStorage.removeItem('rememberedUser');
         }
         showMainApp();
     } else {
-        alert('Kullanıcı adı veya şifre hatalı!');
+        showToast('Kullanıcı adı veya şifre hatalı!', 'error');
+        // Güvenlik için biraz beklet
+        loginForm.querySelector('button').disabled = true;
+        setTimeout(() => {
+            loginForm.querySelector('button').disabled = false;
+        }, 1000);
     }
 });
 
@@ -118,7 +135,14 @@ logoutBtn.addEventListener('click', () => {
 function showMainApp() {
     loginScreen.style.display = 'none';
     mainApp.style.display = 'block';
-    fabBtn.style.display = 'block'; // FAB'ı göster
+    fabBtn.style.display = 'block';
+    
+    // Firebase kontrolü
+    if (typeof database === 'undefined') {
+        showToast('Firebase bağlantısı kurulamadı. Lütfen sayfayı yenileyin.', 'error');
+        return;
+    }
+    
     arizalariYukle();
 }
 
@@ -320,6 +344,11 @@ modal.addEventListener('click', (e) => {
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    // Çift submit önleme
+    if (isSubmitting) {
+        return;
+    }
+    
     // Validasyon
     let isValid = true;
     
@@ -334,6 +363,10 @@ form.addEventListener('submit', async (e) => {
         isValid = false;
     } else if (!mudurlukler.includes(birimValue)) {
         birimError.textContent = 'Lütfen listeden bir müdürlük seçiniz';
+        birimInput.classList.add('error');
+        isValid = false;
+    } else if (hasInvalidChars(birimValue)) {
+        birimError.textContent = 'Geçersiz karakterler içeriyor';
         birimInput.classList.add('error');
         isValid = false;
     } else {
@@ -378,6 +411,10 @@ form.addEventListener('submit', async (e) => {
         talepError.textContent = 'Lütfen talep eden bilgisini giriniz';
         talepInput.classList.add('error');
         isValid = false;
+    } else if (hasInvalidChars(talepValue)) {
+        talepError.textContent = 'Geçersiz karakterler içeriyor';
+        talepInput.classList.add('error');
+        isValid = false;
     } else {
         talepError.textContent = '';
         talepInput.classList.remove('error');
@@ -392,56 +429,75 @@ form.addEventListener('submit', async (e) => {
         yapilanError.textContent = 'Lütfen yapılan işleri giriniz';
         yapilanInput.classList.add('error');
         isValid = false;
+    } else if (hasInvalidChars(yapilanValue)) {
+        yapilanError.textContent = 'Geçersiz karakterler içeriyor';
+        yapilanInput.classList.add('error');
+        isValid = false;
     } else {
         yapilanError.textContent = '';
         yapilanInput.classList.remove('error');
     }
     
+    // Açıklama kontrolü (opsiyonel ama kontrol edelim)
+    const aciklamaValue = document.getElementById('aciklama').value.trim();
+    if (aciklamaValue && hasInvalidChars(aciklamaValue)) {
+        showToast('Açıklama geçersiz karakterler içeriyor', 'error');
+        isValid = false;
+    }
+    
     if (!isValid) {
-        showToast('Lütfen tüm zorunlu alanları doldurunuz', 'error');
+        showToast('Lütfen tüm zorunlu alanları doğru doldurunuz', 'error');
         return;
     }
     
+    // Firebase kontrolü
+    if (typeof database === 'undefined') {
+        showToast('Veritabanı bağlantısı yok. Lütfen sayfayı yenileyin.', 'error');
+        return;
+    }
+    
+    isSubmitting = true;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Kaydediliyor...';
+    
     const arizaData = {
-        birim: birimValue,
-        cihazTuru: document.getElementById('cihaz-turu').value,
-        arizaTuru: document.getElementById('ariza-turu').value,
-        aciklama: document.getElementById('aciklama').value.trim() || '',
-        yapilanIsler: yapilanValue,
-        talepEden: talepValue,
-        atananKisi: document.getElementById('atanan-kisi')?.value.trim() || '',
+        birim: sanitizeHTML(birimValue),
+        cihazTuru: sanitizeHTML(cihazValue),
+        arizaTuru: sanitizeHTML(arizaTuruValue),
+        aciklama: sanitizeHTML(aciklamaValue) || '',
+        yapilanIsler: sanitizeHTML(yapilanValue),
+        talepEden: sanitizeHTML(talepValue),
+        atananKisi: sanitizeHTML(document.getElementById('atanan-kisi')?.value.trim() || ''),
         durum: editingId ? undefined : 'beklemede',
-        tarih: new Date().toLocaleString('tr-TR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
+        tarih: safeDateFormat(Date.now()),
         timestamp: Date.now()
     };
     
     try {
         if (editingId) {
-            // Güncelleme
             await database.ref('arizalar/' + editingId).update(arizaData);
             showToast('Kayıt başarıyla güncellendi', 'success');
-            playSound('success');
+            if (typeof playSound === 'function') playSound('success');
         } else {
-            // Yeni kayıt
             await database.ref('arizalar').push(arizaData);
             showToast('Yeni kayıt başarıyla eklendi', 'success');
-            playSound('success');
+            if (typeof playSound === 'function') playSound('success');
         }
         form.reset();
-        // Hata mesajlarını ve stilleri temizle
         document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
         document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
         modal.classList.remove('active');
         editingId = null;
+        formDirty = false;
     } catch (error) {
-        console.error('Hata:', error);
-        showToast('İşlem sırasında bir hata oluştu!', 'error');
+        console.error('Kayıt hatası:', error);
+        showToast('İşlem sırasında bir hata oluştu: ' + error.message, 'error');
+    } finally {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 });
 
@@ -476,6 +532,12 @@ function arizalariYukle() {
 
 // Arızaları göster
 function arizalariGoster(arizalar) {
+    // Güvenlik kontrolü
+    if (!arizalar || !Array.isArray(arizalar)) {
+        console.error('Geçersiz arıza verisi');
+        arizalar = [];
+    }
+    
     if (arizalar.length === 0) {
         arizaListesi.innerHTML = `
             <div class="empty-state">
@@ -486,34 +548,52 @@ function arizalariGoster(arizalar) {
         return;
     }
     
-    arizaListesi.innerHTML = arizalar.map(ariza => `
-        <div class="ariza-item">
-            <div class="ariza-header">
-                <span class="ariza-id">#${ariza.id.substring(0, 8)}</span>
-                <span class="durum-badge durum-${ariza.durum}">${durumMetni(ariza.durum)}</span>
+    try {
+        arizaListesi.innerHTML = arizalar.map(ariza => {
+            // Null kontrolü
+            if (!ariza || !ariza.id) {
+                console.warn('Geçersiz arıza:', ariza);
+                return '';
+            }
+            
+            return `
+                <div class="ariza-item">
+                    <div class="ariza-header">
+                        <span class="ariza-id">#${sanitizeHTML(ariza.id.substring(0, 8))}</span>
+                        <span class="durum-badge durum-${ariza.durum || 'beklemede'}">${durumMetni(ariza.durum || 'beklemede')}</span>
+                    </div>
+                    <div class="ariza-info">
+                        <div class="info-item"><strong>Müdürlük:</strong> ${sanitizeHTML(ariza.birim || 'Belirtilmemiş')}</div>
+                        <div class="info-item"><strong>Cihaz:</strong> ${sanitizeHTML(ariza.cihazTuru || 'Belirtilmemiş')}</div>
+                        <div class="info-item"><strong>Arıza Türü:</strong> ${sanitizeHTML(ariza.arizaTuru || 'Belirtilmemiş')}</div>
+                        <div class="info-item"><strong>Talep Eden:</strong> ${sanitizeHTML(ariza.talepEden || 'Belirtilmemiş')}</div>
+                        <div class="info-item"><strong>Tarih:</strong> ${sanitizeHTML(ariza.tarih || safeDateFormat(ariza.timestamp))}</div>
+                    </div>
+                    ${ariza.aciklama ? `<div class="ariza-aciklama"><strong>Arıza:</strong> ${sanitizeHTML(ariza.aciklama)}</div>` : ''}
+                    ${ariza.yapilanIsler ? `<div class="ariza-aciklama"><strong>Yapılan İşler:</strong> ${sanitizeHTML(ariza.yapilanIsler)}</div>` : ''}
+                    ${ariza.atananKisi ? `<div class="ariza-aciklama"><strong>Atanan:</strong> ${sanitizeHTML(ariza.atananKisi)}</div>` : ''}
+                    <div class="ariza-actions">
+                        ${ariza.durum === 'beklemede' ? 
+                            `<button class="btn-small btn-devam" onclick="durumDegistir('${ariza.id}', 'devam-ediyor')">Devam Ediyor</button>` 
+                            : ''}
+                        ${ariza.durum !== 'tamamlandi' ? 
+                            `<button class="btn-small btn-tamamla" onclick="durumDegistir('${ariza.id}', 'tamamlandi')">Tamamla</button>` 
+                            : ''}
+                        <button class="btn-small btn-duzenle" onclick="duzenle('${ariza.id}')">Düzenle</button>
+                        <button class="btn-small btn-sil" onclick="silArizaKaydi('${ariza.id}')">Sil</button>
+                    </div>
+                </div>
+            `;
+        }).filter(html => html).join('');
+    } catch (error) {
+        console.error('Arıza gösterme hatası:', error);
+        arizaListesi.innerHTML = `
+            <div class="empty-state">
+                <h3>Veriler yüklenirken hata oluştu</h3>
+                <p>Lütfen sayfayı yenileyin</p>
             </div>
-            <div class="ariza-info">
-                <div class="info-item"><strong>Müdürlük:</strong> ${ariza.birim}</div>
-                <div class="info-item"><strong>Cihaz:</strong> ${ariza.cihazTuru}</div>
-                <div class="info-item"><strong>Arıza Türü:</strong> ${ariza.arizaTuru}</div>
-                <div class="info-item"><strong>Talep Eden:</strong> ${ariza.talepEden}</div>
-                <div class="info-item"><strong>Tarih:</strong> ${ariza.tarih}</div>
-            </div>
-            ${ariza.aciklama ? `<div class="ariza-aciklama"><strong>Arıza:</strong> ${ariza.aciklama}</div>` : ''}
-            ${ariza.yapilanIsler ? `<div class="ariza-aciklama"><strong>Yapılan İşler:</strong> ${ariza.yapilanIsler}</div>` : ''}
-            ${ariza.atananKisi ? `<div class="ariza-aciklama"><strong>Atanan:</strong> ${ariza.atananKisi}</div>` : ''}
-            <div class="ariza-actions">
-                ${ariza.durum === 'beklemede' ? 
-                    `<button class="btn-small btn-devam" onclick="durumDegistir('${ariza.id}', 'devam-ediyor')">Devam Ediyor</button>` 
-                    : ''}
-                ${ariza.durum !== 'tamamlandi' ? 
-                    `<button class="btn-small btn-tamamla" onclick="durumDegistir('${ariza.id}', 'tamamlandi')">Tamamla</button>` 
-                    : ''}
-                <button class="btn-small btn-duzenle" onclick="duzenle('${ariza.id}')">Düzenle</button>
-                <button class="btn-small btn-sil" onclick="silArizaKaydi('${ariza.id}')">Sil</button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }
 }
 
 // Durum metni

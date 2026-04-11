@@ -107,33 +107,38 @@ if (excelBtn) {
 }
 
 function exportToExcel() {
-    if (tumArizalar.length === 0) {
+    if (!tumArizalar || tumArizalar.length === 0) {
         showToast('Dışa aktarılacak veri yok', 'warning');
         return;
     }
     
-    const data = tumArizalar.map(ariza => ({
-        'ID': ariza.id.substring(0, 8),
-        'Müdürlük': ariza.birim,
-        'Cihaz Türü': ariza.cihazTuru,
-        'Arıza Türü': ariza.arizaTuru,
-        'Talep Eden': ariza.talepEden,
-        'Arıza Açıklaması': ariza.aciklama || '',
-        'Yapılan İşler': ariza.yapilanIsler || '',
-        'Atanan Kişi': ariza.atananKisi || '',
-        'Durum': durumMetni(ariza.durum),
-        'Tarih': ariza.tarih
-    }));
-    
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Arıza Kayıtları');
-    
-    const tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
-    XLSX.writeFile(wb, `ariza-kayitlari-${tarih}.xlsx`);
-    
-    showToast('Excel dosyası indirildi', 'success');
-    playSound('success');
+    try {
+        const data = tumArizalar.map(ariza => ({
+            'ID': ariza.id ? ariza.id.substring(0, 8) : 'N/A',
+            'Müdürlük': ariza.birim || '',
+            'Cihaz Türü': ariza.cihazTuru || '',
+            'Arıza Türü': ariza.arizaTuru || '',
+            'Talep Eden': ariza.talepEden || '',
+            'Arıza Açıklaması': ariza.aciklama || '',
+            'Yapılan İşler': ariza.yapilanIsler || '',
+            'Atanan Kişi': ariza.atananKisi || '',
+            'Durum': durumMetni(ariza.durum || 'beklemede'),
+            'Tarih': ariza.tarih || safeDateFormat(ariza.timestamp)
+        }));
+        
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Arıza Kayıtları');
+        
+        const tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
+        XLSX.writeFile(wb, `ariza-kayitlari-${tarih}.xlsx`);
+        
+        showToast('Excel dosyası indirildi', 'success');
+        if (typeof playSound === 'function') playSound('success');
+    } catch (error) {
+        console.error('Excel export hatası:', error);
+        showToast('Excel oluşturulurken hata oluştu', 'error');
+    }
 }
 
 // PDF Export
