@@ -928,3 +928,139 @@ function showToast(message, type = 'success') {
         toast.classList.remove('show');
     }, 3000);
 }
+
+
+// Arızaları yükle
+async function loadArizalar() {
+    const arizaListesi = document.getElementById('ariza-listesi');
+    if (!arizaListesi) return;
+    
+    try {
+        arizaListesi.innerHTML = '<div class="loading">Yükleniyor...</div>';
+        
+        const { data: arizalar, error } = await supabase
+            .from('arizalar')
+            .select('*')
+            .order('timestamp', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!arizalar || arizalar.length === 0) {
+            arizaListesi.innerHTML = `
+                <div class="empty-state">
+                    <h3>📋 Henüz arıza kaydı yok</h3>
+                    <p>Yeni bir arıza kaydı eklemek için + butonuna tıklayın</p>
+                </div>
+            `;
+            updateStats(arizalar);
+            return;
+        }
+        
+        displayArizalar(arizalar);
+        updateStats(arizalar);
+    } catch (error) {
+        console.error('Arıza yükleme hatası:', error);
+        arizaListesi.innerHTML = `
+            <div class="empty-state">
+                <h3>❌ Veriler yüklenirken hata oluştu</h3>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// Arızaları göster
+function displayArizalar(arizalar) {
+    const arizaListesi = document.getElementById('ariza-listesi');
+    if (!arizaListesi) return;
+    
+    arizaListesi.innerHTML = arizalar.map(ariza => `
+        <div class="ariza-item">
+            <div class="ariza-header">
+                <span class="ariza-id">#${ariza.id.substring(0, 8)}</span>
+                <span class="durum-badge durum-${ariza.durum}">${getDurumText(ariza.durum)}</span>
+            </div>
+            <div class="ariza-info">
+                <div class="info-item"><strong>Müdürlük:</strong> ${ariza.birim}</div>
+                <div class="info-item"><strong>Cihaz:</strong> ${ariza.cihaz_turu}</div>
+                <div class="info-item"><strong>Arıza:</strong> ${ariza.ariza_turu}</div>
+                <div class="info-item"><strong>Talep Eden:</strong> ${ariza.talep_eden}</div>
+                <div class="info-item"><strong>Tarih:</strong> ${ariza.tarih}</div>
+                ${ariza.atanan_kisi ? `<div class="info-item"><strong>Atanan:</strong> ${ariza.atanan_kisi}</div>` : ''}
+            </div>
+            ${ariza.aciklama ? `<div class="ariza-aciklama"><strong>Açıklama:</strong> ${ariza.aciklama}</div>` : ''}
+            <div class="ariza-aciklama"><strong>Yapılan İşler:</strong> ${ariza.yapilan_isler}</div>
+            <div class="ariza-actions">
+                ${ariza.durum === 'beklemede' ? `<button class="btn-small btn-devam" onclick="updateDurum('${ariza.id}', 'devam-ediyor')">Devam Ediyor</button>` : ''}
+                ${ariza.durum === 'devam-ediyor' ? `<button class="btn-small btn-tamamla" onclick="updateDurum('${ariza.id}', 'tamamlandi')">Tamamla</button>` : ''}
+                <button class="btn-small btn-sil" onclick="deleteAriza('${ariza.id}')">Sil</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// İstatistikleri güncelle
+function updateStats(arizalar) {
+    const toplam = arizalar.length;
+    const beklemede = arizalar.filter(a => a.durum === 'beklemede').length;
+    const devam = arizalar.filter(a => a.durum === 'devam-ediyor').length;
+    const tamamlandi = arizalar.filter(a => a.durum === 'tamamlandi').length;
+    
+    document.getElementById('stat-toplam').textContent = toplam;
+    document.getElementById('stat-beklemede').textContent = beklemede;
+    document.getElementById('stat-devam').textContent = devam;
+    document.getElementById('stat-tamamlandi').textContent = tamamlandi;
+}
+
+// Durum metni
+function getDurumText(durum) {
+    const durumlar = {
+        'beklemede': 'Beklemede',
+        'devam-ediyor': 'Devam Ediyor',
+        'tamamlandi': 'Tamamlandı'
+    };
+    return durumlar[durum] || durum;
+}
+
+// Durum güncelle
+async function updateDurum(id, yeniDurum) {
+    try {
+        const { error } = await supabase
+            .from('arizalar')
+            .update({ durum: yeniDurum })
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showToast('Durum güncellendi', 'success');
+        loadArizalar();
+    } catch (error) {
+        console.error('Durum güncelleme hatası:', error);
+        showToast('Durum güncellenirken hata oluştu', 'error');
+    }
+}
+
+// Arıza sil
+async function deleteAriza(id) {
+    if (!confirm('Bu arıza kaydını silmek istediğinizden emin misiniz?')) return;
+    
+    try {
+        const { error } = await supabase
+            .from('arizalar')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showToast('Arıza kaydı silindi', 'success');
+        loadArizalar();
+    } catch (error) {
+        console.error('Arıza silme hatası:', error);
+        showToast('Arıza silinirken hata oluştu', 'error');
+    }
+}
+
+// Global fonksiyonlar
+window.loadArizalar = loadArizalar;
+window.updateDurum = updateDurum;
+window.deleteAriza = deleteAriza;
