@@ -431,16 +431,23 @@ header h2 {
     display: flex;
     align-items: center;
     gap: 15px;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 body.dark-mode .stat-card {
     background: #2d3748;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .stat-card:hover {
+    background: #374151;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
 }
 
 .stat-icon {
@@ -792,6 +799,12 @@ body.dark-mode .ariza-item {
 .ariza-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.dark-mode .ariza-item:hover {
+    background: #374151;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
 }
 
 .ariza-header {

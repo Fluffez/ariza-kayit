@@ -273,14 +273,18 @@ body.dark-mode .search-box input::placeholder {
 .item-card:hover {
     background: #edf2f7;
     transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 body.dark-mode .item-card {
     background: #1a202c;
+    border-left-color: #7c8ef7;
 }
 
 body.dark-mode .item-card:hover {
-    background: #2d3748;
+    background: #374151;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: translateX(5px);
 }
 
 .item-info {
