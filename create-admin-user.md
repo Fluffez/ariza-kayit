@@ -1,63 +1,23 @@
-# Supabase Auth - İlk Admin Kullanıcısı Oluşturma
+# Kullanıcı Tablosu Oluşturma
 
-## Adım 1: Supabase Dashboard'a Git
-1. https://supabase.com/dashboard adresine git
-2. Projenizi seçin: `wmpvckbtixysxqkttdje`
+## Supabase SQL Editor'de Çalıştır
 
-## Adım 2: Authentication'ı Aktifleştir
-1. Sol menüden **Authentication** > **Users** sekmesine git
-2. Sağ üstten **Add user** > **Create new user** butonuna tıkla
-
-## Adım 3: Admin Kullanıcısı Oluştur
-Aşağıdaki bilgilerle kullanıcı oluştur:
-
-**Email:** admin@local.app
-**Password:** admin123
-**Email Confirm:** ✅ (Auto Confirm User seçeneğini işaretle)
-
-**User Metadata (JSON):**
-```json
-{
-  "role": "admin",
-  "display_name": "Admin"
-}
-```
-
-## Adım 4: Normal Kullanıcı Oluştur (Opsiyonel)
-**Email:** dosemealti123@local.app
-**Password:** dosemealti123
-**Email Confirm:** ✅
-
-**User Metadata (JSON):**
-```json
-{
-  "role": "user",
-  "display_name": "Kullanıcı"
-}
-```
-
-## Adım 5: Email Settings
-Email doğrulama istemiyoruz:
-1. **Authentication** > **Settings** > **Email Auth**
-2. **Confirm email** seçeneğini KAPAT
+1. Supabase Dashboard > SQL Editor'e git
+2. `users-schema.sql` dosyasındaki SQL'i çalıştır
+3. Varsayılan kullanıcılar otomatik oluşturulacak
 
 ## Giriş Bilgileri
 
-### Admin Girişi:
+### Admin:
 - **Kullanıcı Adı:** admin
 - **Şifre:** admin123
 
-### Normal Kullanıcı Girişi:
+### Normal Kullanıcı:
 - **Kullanıcı Adı:** dosemealti123
 - **Şifre:** dosemealti123
 
-## Nasıl Çalışıyor?
-- Kullanıcı adı girildiğinde otomatik olarak `@local.app` ekleniyor
-- Örnek: `admin` → `admin@local.app`
-- Supabase Auth email tabanlı çalıştığı için bu trick kullanılıyor
-- Kullanıcılar sadece kullanıcı adı görüyor, email görmüyor
-
-## Not:
-- Artık `admin/admin123` ve `dosemealti123/dosemealti123` Supabase Auth üzerinden çalışıyor
-- Tüm authentication Supabase Auth üzerinden yapılıyor
-- Kullanıcılar Supabase Dashboard'dan yönetiliyor
+## Sistem
+- Artık Supabase Auth kullanılmıyor
+- Kendi `users` tablomuzda username/password saklıyoruz
+- Plain text şifre (basit sistem için)
+- Üretimde mutlaka bcrypt kullanın!
