@@ -11,8 +11,8 @@
 ## Adım 3: Admin Kullanıcısı Oluştur
 Aşağıdaki bilgilerle kullanıcı oluştur:
 
-**Email:** admin@dosemealti.gov.tr
-**Password:** Admin123!@#
+**Email:** admin@local.app
+**Password:** admin123
 **Email Confirm:** ✅ (Auto Confirm User seçeneğini işaretle)
 
 **User Metadata (JSON):**
@@ -24,8 +24,8 @@ Aşağıdaki bilgilerle kullanıcı oluştur:
 ```
 
 ## Adım 4: Normal Kullanıcı Oluştur (Opsiyonel)
-**Email:** user@dosemealti.gov.tr
-**Password:** User123!@#
+**Email:** dosemealti123@local.app
+**Password:** dosemealti123
 **Email Confirm:** ✅
 
 **User Metadata (JSON):**
@@ -36,22 +36,28 @@ Aşağıdaki bilgilerle kullanıcı oluştur:
 }
 ```
 
-## Adım 5: Email Settings (Opsiyonel)
-Eğer email doğrulama istemiyorsan:
+## Adım 5: Email Settings
+Email doğrulama istemiyoruz:
 1. **Authentication** > **Settings** > **Email Auth**
 2. **Confirm email** seçeneğini KAPAT
 
 ## Giriş Bilgileri
 
 ### Admin Girişi:
-- **Email:** admin@dosemealti.gov.tr
-- **Şifre:** Admin123!@#
+- **Kullanıcı Adı:** admin
+- **Şifre:** admin123
 
 ### Normal Kullanıcı Girişi:
-- **Email:** user@dosemealti.gov.tr
-- **Şifre:** User123!@#
+- **Kullanıcı Adı:** dosemealti123
+- **Şifre:** dosemealti123
+
+## Nasıl Çalışıyor?
+- Kullanıcı adı girildiğinde otomatik olarak `@local.app` ekleniyor
+- Örnek: `admin` → `admin@local.app`
+- Supabase Auth email tabanlı çalıştığı için bu trick kullanılıyor
+- Kullanıcılar sadece kullanıcı adı görüyor, email görmüyor
 
 ## Not:
-- Artık `admin/admin123` ve `dosemealti123/dosemealti123` kullanılmıyor
+- Artık `admin/admin123` ve `dosemealti123/dosemealti123` Supabase Auth üzerinden çalışıyor
 - Tüm authentication Supabase Auth üzerinden yapılıyor
 - Kullanıcılar Supabase Dashboard'dan yönetiliyor

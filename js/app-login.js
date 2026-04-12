@@ -13,19 +13,19 @@ document.addEventListener('DOMContentLoaded', () => {
         newLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('username').value.trim();
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const rememberMe = document.getElementById('remember-me').checked;
             
             // Input validasyonu
-            if (!email || !password) {
-                showToast('Email ve şifre gerekli', 'error');
+            if (!username || !password) {
+                showToast('Kullanıcı adı ve şifre gerekli', 'error');
                 return;
             }
             
             try {
-                // Supabase Auth ile giriş
-                await authManager.login(email, password, rememberMe);
+                // Supabase Auth ile giriş (kullanıcı adı otomatik email formatına çevrilecek)
+                await authManager.login(username, password, rememberMe);
                 showToast(authManager.isAdminUser() ? 'Admin olarak giriş yapıldı' : 'Giriş başarılı', 'success');
             } catch (error) {
                 showToast(error.message, 'error');

@@ -53,8 +53,11 @@ class AuthManager {
                 }
             }
 
+            // Eğer @ yoksa, kullanıcı adını email formatına çevir
+            const emailToUse = email.includes('@') ? email : `${email}@local.app`;
+
             // Supabase Auth ile giriş yap
-            const { user, session } = await db.signIn(email, password);
+            const { user, session } = await db.signIn(emailToUse, password);
             
             this.currentUser = user;
             this.isAdmin = user.user_metadata?.role === 'admin';
@@ -106,7 +109,10 @@ class AuthManager {
 
     async register(email, password, displayName, role = 'user') {
         try {
-            const { user } = await db.signUp(email, password, {
+            // Eğer @ yoksa, kullanıcı adını email formatına çevir
+            const emailToUse = email.includes('@') ? email : `${email}@local.app`;
+            
+            const { user } = await db.signUp(emailToUse, password, {
                 display_name: displayName,
                 role: role
             });
