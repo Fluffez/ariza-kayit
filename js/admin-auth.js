@@ -3,12 +3,24 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Auth manager'ın yüklenmesini bekle
-    if (typeof authManager === 'undefined') {
-        console.error('Auth manager not loaded');
-        window.location.href = 'index.html';
-        return;
-    }
+    const waitForAuth = setInterval(() => {
+        if (typeof authManager !== 'undefined') {
+            clearInterval(waitForAuth);
+            checkAdminAccess();
+        }
+    }, 50);
+    
+    // 5 saniye sonra hala yüklenmediyse hata ver
+    setTimeout(() => {
+        if (typeof authManager === 'undefined') {
+            console.error('Auth manager not loaded');
+            alert('Lütfen önce giriş yapın');
+            window.location.href = 'index.html';
+        }
+    }, 5000);
+});
 
+function checkAdminAccess() {
     // Kullanıcı giriş yapmış mı kontrol et
     if (!authManager.isAuthenticated()) {
         alert('Lütfen önce giriş yapın');
@@ -36,4 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-});
+    
+    console.log('Admin access granted');
+}
