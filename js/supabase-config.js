@@ -1,8 +1,8 @@
 // Supabase Configuration
 // https://supabase.com adresinden projenizi oluşturun
 
-const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // Örnek: https://xxxxx.supabase.co
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://wmpvckbtixysxqkttdje.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcHZja2J0aXh5c3hxa3R0ZGplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5NjY0NDksImV4cCI6MjA5MTU0MjQ0OX0.pBfYMVzprjT-AtF_79ehnfCFimQzEkCJmDVblrEijmA';
 
 // Supabase client oluştur
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
