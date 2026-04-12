@@ -2,6 +2,16 @@
 // Bu dosya app.js'deki login kodunu override eder
 
 document.addEventListener('DOMContentLoaded', () => {
+    // authManager'ın yüklenmesini bekle
+    const waitForAuth = setInterval(() => {
+        if (typeof authManager !== 'undefined') {
+            clearInterval(waitForAuth);
+            initializeLoginHandlers();
+        }
+    }, 50);
+});
+
+function initializeLoginHandlers() {
     const loginForm = document.getElementById('login-form');
     const logoutBtn = document.getElementById('logout-btn');
     
@@ -61,4 +71,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
+}
