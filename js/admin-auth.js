@@ -1,6 +1,25 @@
 // Admin Panel Authentication Check
 // Sadece admin kullanıcıları admin paneline erişebilir
 
+// Sayfa yüklendiğinde hemen kontrol et
+(function() {
+    // LocalStorage'dan kullanıcıyı kontrol et
+    const savedUser = localStorage.getItem('currentUser');
+    const savedIsAdmin = localStorage.getItem('isAdmin');
+    
+    if (!savedUser) {
+        alert('Lütfen önce giriş yapın');
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    if (savedIsAdmin !== 'true') {
+        alert('Bu sayfaya erişim yetkiniz yok');
+        window.location.href = 'index.html';
+        return;
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Auth manager'ın yüklenmesini bekle
     const waitForAuth = setInterval(() => {
