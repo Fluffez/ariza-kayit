@@ -991,9 +991,10 @@ function displayArizalar(arizalar) {
             ${ariza.aciklama ? `<div class="ariza-aciklama"><strong>Açıklama:</strong> ${ariza.aciklama}</div>` : ''}
             <div class="ariza-aciklama"><strong>Yapılan İşler:</strong> ${ariza.yapilan_isler}</div>
             <div class="ariza-actions">
-                ${ariza.durum === 'beklemede' ? `<button class="btn-small btn-devam" onclick="updateDurum('${ariza.id}', 'devam-ediyor')">Devam Ediyor</button>` : ''}
-                ${ariza.durum === 'devam-ediyor' ? `<button class="btn-small btn-tamamla" onclick="updateDurum('${ariza.id}', 'tamamlandi')">Tamamla</button>` : ''}
-                <button class="btn-small btn-sil" onclick="deleteAriza('${ariza.id}')">Sil</button>
+                ${ariza.durum === 'beklemede' ? `<button class="btn-small btn-devam" onclick="window.updateDurum('${ariza.id}', 'devam-ediyor')">Devam Ediyor</button>` : ''}
+                ${ariza.durum === 'devam-ediyor' ? `<button class="btn-small btn-tamamla" onclick="window.updateDurum('${ariza.id}', 'tamamlandi')">Tamamla</button>` : ''}
+                <button class="btn-small btn-duzenle" onclick="window.editAriza('${ariza.id}')">Düzenle</button>
+                <button class="btn-small btn-sil" onclick="window.deleteAriza('${ariza.id}')">Sil</button>
             </div>
         </div>
     `).join('');
@@ -1060,7 +1061,139 @@ async function deleteAriza(id) {
     }
 }
 
+// Arıza düzenle
+async function editAriza(id) {
+    try {
+        // Arızayı getir
+        const { data: ariza, error } = await supabase
+            .from('arizalar')
+            .select('*')
+            .eq('id', id)
+            .single();
+        
+        if (error) throw error;
+        
+        // Modal'ı aç ve formu doldur
+        const modal = document.getElementById('modal');
+        const modalTitle = modal.querySelector('.modal-header h3');
+        
+        modalTitle.textContent = 'Arıza Kaydını Düzenle';
+        
+        // Form alanlarını doldur
+        document.getElementById('birim').value = ariza.birim;
+        document.getElementById('cihaz-turu').value = ariza.cihaz_turu;
+        document.getElementById('ariza-turu').value = ariza.ariza_turu;
+        document.getElementById('talep-eden').value = ariza.talep_eden;
+        document.getElementById('aciklama').value = ariza.aciklama || '';
+        document.getElementById('yapilan-isler').value = ariza.yapilan_isler;
+        document.getElementById('atanan-kisi').value = ariza.atanan_kisi || '';
+        
+        // Form'a edit mode flag ekle
+        const form = document.getElementById('ariza-form');
+        form.dataset.editId = id;
+        form.dataset.editMode = 'true';
+        
+        modal.classList.add('active');
+    } catch (error) {
+        console.error('Arıza düzenleme hatası:', error);
+        showToast('Arıza yüklenirken hata oluştu', 'error');
+    }
+}
+
 // Global fonksiyonlar
 window.loadArizalar = loadArizalar;
 window.updateDurum = updateDurum;
 window.deleteAriza = deleteAriza;
+window.editAriza = editAriza;
+
+
+// Form submit handler
+document.addEventListener('DOMContentLoaded', () => {
+    const arizaForm = document.getElementById('ariza-form');
+    const modal = document.getElementById('modal');
+    const fabBtn = document.getElementById('fab-btn');
+    const closeBtn = document.getElementById('close-btn');
+    
+    // FAB button - yeni arıza ekle
+    if (fabBtn) {
+        fabBtn.addEventListener('click', () => {
+            const modalTitle = modal.querySelector('.modal-header h3');
+            modalTitle.textContent = 'Yeni Arıza Kaydı';
+            
+            // Form'u temizle
+            arizaForm.reset();
+            delete arizaForm.dataset.editId;
+            delete arizaForm.dataset.editMode;
+            
+            modal.classList.add('active');
+        });
+    }
+    
+    // Close button
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            arizaForm.reset();
+            delete arizaForm.dataset.editId;
+            delete arizaForm.dataset.editMode;
+        });
+    }
+    
+    // Form submit
+    if (arizaForm) {
+        arizaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                birim: document.getElementById('birim').value.trim(),
+                cihaz_turu: document.getElementById('cihaz-turu').value,
+                ariza_turu: document.getElementById('ariza-turu').value,
+                talep_eden: document.getElementById('talep-eden').value.trim(),
+                aciklama: document.getElementById('aciklama').value.trim(),
+                yapilan_isler: document.getElementById('yapilan-isler').value.trim(),
+                atanan_kisi: document.getElementById('atanan-kisi').value.trim(),
+                tarih: new Date().toLocaleDateString('tr-TR'),
+                timestamp: Date.now()
+            };
+            
+            // Düzenleme mi yoksa yeni kayıt mı?
+            const editMode = arizaForm.dataset.editMode === 'true';
+            const editId = arizaForm.dataset.editId;
+            
+            try {
+                if (editMode && editId) {
+                    // Güncelle
+                    const { error } = await supabase
+                        .from('arizalar')
+                        .update(formData)
+                        .eq('id', editId);
+                    
+                    if (error) throw error;
+                    
+                    showToast('Arıza kaydı güncellendi', 'success');
+                } else {
+                    // Yeni kayıt
+                    formData.durum = 'beklemede';
+                    
+                    const { error } = await supabase
+                        .from('arizalar')
+                        .insert([formData]);
+                    
+                    if (error) throw error;
+                    
+                    showToast('Arıza kaydı eklendi', 'success');
+                }
+                
+                // Modal'ı kapat ve listeyi yenile
+                modal.classList.remove('active');
+                arizaForm.reset();
+                delete arizaForm.dataset.editId;
+                delete arizaForm.dataset.editMode;
+                loadArizalar();
+            } catch (error) {
+                console.error('Form submit hatası:', error);
+                showToast('İşlem sırasında hata oluştu: ' + error.message, 'error');
+            }
+        });
+    }
+});
