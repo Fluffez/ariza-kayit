@@ -204,6 +204,13 @@ function initializeLoginHandlers() {
                     
                     // Ana ekrana geç
                     authManager.showMainApp();
+                    
+                    // Verileri yükle
+                    setTimeout(() => {
+                        if (typeof window.loadArizalar === 'function') {
+                            window.loadArizalar();
+                        }
+                    }, 200);
                 }
             } catch (error) {
                 showToast(error.message, 'error');
