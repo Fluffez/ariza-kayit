@@ -56,19 +56,16 @@ let currentPageTeknisyen = 1;
 const itemsPerPage = 50;
 
 // Müdürlükleri yükle
-function loadMudurlukler() {
-    database.ref('mudurlukler').on('value', (snapshot) => {
-        mudurluklerData = [];
-        snapshot.forEach((child) => {
-            mudurluklerData.push({
-                id: child.key,
-                name: child.val().name || child.val()
-            });
-        });
+async function loadMudurlukler() {
+    try {
+        mudurluklerData = await db.getMudurlukler();
         console.log(`Toplam ${mudurluklerData.length} müdürlük yüklendi`);
         currentPageMudurluk = 1;
         displayMudurlukler();
-    });
+    } catch (error) {
+        console.error('Müdürlük yükleme hatası:', error);
+        showToast('Müdürlükler yüklenirken hata oluştu', 'error');
+    }
 }
 
 function displayMudurlukler(dataToDisplay = null) {
@@ -120,19 +117,16 @@ window.changeMudurlukPage = function(page) {
 };
 
 // Çalışanları yükle
-function loadCalisanlar() {
-    database.ref('calisanlar').on('value', (snapshot) => {
-        calisanlarData = [];
-        snapshot.forEach((child) => {
-            calisanlarData.push({
-                id: child.key,
-                name: child.val().name || child.val()
-            });
-        });
+async function loadCalisanlar() {
+    try {
+        calisanlarData = await db.getCalisanlar();
         console.log(`Toplam ${calisanlarData.length} çalışan yüklendi`);
         currentPageCalisan = 1;
         displayCalisanlar();
-    });
+    } catch (error) {
+        console.error('Çalışan yükleme hatası:', error);
+        showToast('Çalışanlar yüklenirken hata oluştu', 'error');
+    }
 }
 
 function displayCalisanlar(dataToDisplay = null) {
@@ -184,19 +178,16 @@ window.changeCalisanPage = function(page) {
 };
 
 // Teknisyenleri yükle
-function loadTeknisyenler() {
-    database.ref('teknisyenler').on('value', (snapshot) => {
-        teknisyenlerData = [];
-        snapshot.forEach((child) => {
-            teknisyenlerData.push({
-                id: child.key,
-                name: child.val().name || child.val()
-            });
-        });
+async function loadTeknisyenler() {
+    try {
+        teknisyenlerData = await db.getTeknisyenler();
         console.log(`Toplam ${teknisyenlerData.length} teknisyen yüklendi`);
         currentPageTeknisyen = 1;
         displayTeknisyenler();
-    });
+    } catch (error) {
+        console.error('Teknisyen yükleme hatası:', error);
+        showToast('Teknisyenler yüklenirken hata oluştu', 'error');
+    }
 }
 
 function displayTeknisyenler(dataToDisplay = null) {
@@ -247,61 +238,37 @@ window.changeTeknisyenPage = function(page) {
     }
 };
 
-// Kullanıcıları yükle
+// Kullanıcıları yükle - Şimdilik kullanılmıyor
 function loadKullanicilar() {
-    database.ref('kullanicilar').on('value', (snapshot) => {
-        kullanicilarData = [];
-        snapshot.forEach((child) => {
-            kullanicilarData.push({
-                id: child.key,
-                ...child.val()
-            });
-        });
-        displayKullanicilar(kullanicilarData);
-    });
+    // Kullanıcı yönetimi şimdilik devre dışı
+    kullanicilarData = [];
+    displayKullanicilar(kullanicilarData);
 }
 
 function displayKullanicilar(data) {
     const list = document.getElementById('user-list');
-    if (data.length === 0) {
-        list.innerHTML = '<p style="text-align: center; color: #718096;">Henüz kullanıcı eklenmemiş</p>';
-        return;
-    }
-    
-    list.innerHTML = data.map(user => `
-        <div class="user-card">
-            <div class="user-info">
-                <h4>${user.username}</h4>
-                <span class="user-role ${user.role}">${user.role === 'admin' ? 'Admin' : user.role === 'user' ? 'Kullanıcı' : 'Görüntüleyici'}</span>
-            </div>
-            <div class="item-actions">
-                <button class="btn-icon btn-edit" onclick="editUser('${user.id}')">✏️ Düzenle</button>
-                <button class="btn-icon btn-delete" onclick="deleteUser('${user.id}', '${user.username}')">🗑️ Sil</button>
-            </div>
-        </div>
-    `).join('');
+    if (!list) return;
+    list.innerHTML = '<p style="text-align: center; color: #718096;">Kullanıcı yönetimi şimdilik devre dışı</p>';
 }
 
-// Ayarları yükle
+// Ayarları yükle - Şimdilik kullanılmıyor
 function loadAyarlar() {
-    database.ref('ayarlar').once('value', (snapshot) => {
-        ayarlarData = snapshot.val() || {
-            notifications: true,
-            sounds: true,
-            autoRefresh: false,
-            warningDays: 3,
-            criticalDays: 7,
-            itemsPerPage: 25
-        };
-        
-        // Ayarları forma yükle
-        document.getElementById('setting-notifications').checked = ayarlarData.notifications;
-        document.getElementById('setting-sounds').checked = ayarlarData.sounds;
-        document.getElementById('setting-auto-refresh').checked = ayarlarData.autoRefresh;
-        document.getElementById('setting-warning-days').value = ayarlarData.warningDays;
-        document.getElementById('setting-critical-days').value = ayarlarData.criticalDays;
-        document.getElementById('setting-items-per-page').value = ayarlarData.itemsPerPage;
-    });
+    ayarlarData = {
+        notifications: true,
+        sounds: true,
+        autoRefresh: false,
+        warningDays: 3,
+        criticalDays: 7,
+        itemsPerPage: 25
+    };
+    
+    // Ayarları forma yükle
+    document.getElementById('setting-notifications').checked = ayarlarData.notifications;
+    document.getElementById('setting-sounds').checked = ayarlarData.sounds;
+    document.getElementById('setting-auto-refresh').checked = ayarlarData.autoRefresh;
+    document.getElementById('setting-warning-days').value = ayarlarData.warningDays;
+    document.getElementById('setting-critical-days').value = ayarlarData.criticalDays;
+    document.getElementById('setting-items-per-page').value = ayarlarData.itemsPerPage;
 }
 
 // Event Listeners
@@ -391,27 +358,27 @@ function setupEventListeners() {
 }
 
 // CRUD İşlemleri - Müdürlük
-function addMudurluk() {
+async function addMudurluk() {
     showModal('Yeni Müdürlük Ekle', `
         <div class="form-group">
             <label>Müdürlük Adı *</label>
             <input type="text" id="modal-input" required placeholder="Örn: Bilgi İşlem Müdürlüğü">
         </div>
-    `, () => {
+    `, async () => {
         const name = document.getElementById('modal-input').value.trim();
         if (!name) {
             showToast('Müdürlük adı boş olamaz', 'error');
             return;
         }
         
-        database.ref('mudurlukler').push({ name })
-            .then(() => {
-                showToast('Müdürlük eklendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.addMudurluk(name);
+            showToast('Müdürlük eklendi', 'success');
+            closeModal();
+            loadMudurlukler();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     });
 }
 
@@ -421,58 +388,58 @@ window.editMudurluk = function(id, name) {
             <label>Müdürlük Adı *</label>
             <input type="text" id="modal-input" value="${name}" required>
         </div>
-    `, () => {
+    `, async () => {
         const newName = document.getElementById('modal-input').value.trim();
         if (!newName) {
             showToast('Müdürlük adı boş olamaz', 'error');
             return;
         }
         
-        database.ref('mudurlukler/' + id).update({ name: newName })
-            .then(() => {
-                showToast('Müdürlük güncellendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.updateMudurluk(id, newName);
+            showToast('Müdürlük güncellendi', 'success');
+            closeModal();
+            loadMudurlukler();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     });
 };
 
-window.deleteMudurluk = function(id, name) {
+window.deleteMudurluk = async function(id, name) {
     if (confirm(`"${name}" müdürlüğünü silmek istediğinizden emin misiniz?`)) {
-        database.ref('mudurlukler/' + id).remove()
-            .then(() => {
-                showToast('Müdürlük silindi', 'success');
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.deleteMudurluk(id);
+            showToast('Müdürlük silindi', 'success');
+            loadMudurlukler();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     }
 };
 
 // CRUD İşlemleri - Çalışan
-function addCalisan() {
+async function addCalisan() {
     showModal('Yeni Çalışan Ekle', `
         <div class="form-group">
             <label>Çalışan Adı *</label>
             <input type="text" id="modal-input" required placeholder="Örn: 1001 - Ahmet Yılmaz">
         </div>
-    `, () => {
+    `, async () => {
         const name = document.getElementById('modal-input').value.trim();
         if (!name) {
             showToast('Çalışan adı boş olamaz', 'error');
             return;
         }
         
-        database.ref('calisanlar').push({ name })
-            .then(() => {
-                showToast('Çalışan eklendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.addCalisan(name);
+            showToast('Çalışan eklendi', 'success');
+            closeModal();
+            loadCalisanlar();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     });
 }
 
@@ -482,58 +449,58 @@ window.editCalisan = function(id, name) {
             <label>Çalışan Adı *</label>
             <input type="text" id="modal-input" value="${name}" required>
         </div>
-    `, () => {
+    `, async () => {
         const newName = document.getElementById('modal-input').value.trim();
         if (!newName) {
             showToast('Çalışan adı boş olamaz', 'error');
             return;
         }
         
-        database.ref('calisanlar/' + id).update({ name: newName })
-            .then(() => {
-                showToast('Çalışan güncellendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.updateCalisan(id, newName);
+            showToast('Çalışan güncellendi', 'success');
+            closeModal();
+            loadCalisanlar();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     });
 };
 
-window.deleteCalisan = function(id, name) {
+window.deleteCalisan = async function(id, name) {
     if (confirm(`"${name}" çalışanını silmek istediğinizden emin misiniz?`)) {
-        database.ref('calisanlar/' + id).remove()
-            .then(() => {
-                showToast('Çalışan silindi', 'success');
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.deleteCalisan(id);
+            showToast('Çalışan silindi', 'success');
+            loadCalisanlar();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     }
 };
 
 // CRUD İşlemleri - Teknisyen
-function addTeknisyen() {
+async function addTeknisyen() {
     showModal('Yeni Teknisyen Ekle', `
         <div class="form-group">
             <label>Teknisyen Adı *</label>
             <input type="text" id="modal-input" required placeholder="Örn: Mehmet Demir">
         </div>
-    `, () => {
+    `, async () => {
         const name = document.getElementById('modal-input').value.trim();
         if (!name) {
             showToast('Teknisyen adı boş olamaz', 'error');
             return;
         }
         
-        database.ref('teknisyenler').push({ name })
-            .then(() => {
-                showToast('Teknisyen eklendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.addTeknisyen(name);
+            showToast('Teknisyen eklendi', 'success');
+            closeModal();
+            loadTeknisyenler();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     });
 }
 
@@ -543,159 +510,70 @@ window.editTeknisyen = function(id, name) {
             <label>Teknisyen Adı *</label>
             <input type="text" id="modal-input" value="${name}" required>
         </div>
-    `, () => {
+    `, async () => {
         const newName = document.getElementById('modal-input').value.trim();
         if (!newName) {
             showToast('Teknisyen adı boş olamaz', 'error');
             return;
         }
         
-        database.ref('teknisyenler/' + id).update({ name: newName })
-            .then(() => {
-                showToast('Teknisyen güncellendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.updateTeknisyen(id, newName);
+            showToast('Teknisyen güncellendi', 'success');
+            closeModal();
+            loadTeknisyenler();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     });
 };
 
-window.deleteTeknisyen = function(id, name) {
+window.deleteTeknisyen = async function(id, name) {
     if (confirm(`"${name}" teknisyenini silmek istediğinizden emin misiniz?`)) {
-        database.ref('teknisyenler/' + id).remove()
-            .then(() => {
-                showToast('Teknisyen silindi', 'success');
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            await db.deleteTeknisyen(id);
+            showToast('Teknisyen silindi', 'success');
+            loadTeknisyenler();
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     }
 };
 
-// CRUD İşlemleri - Kullanıcı
+// CRUD İşlemleri - Kullanıcı (Şimdilik devre dışı)
 function addUser() {
-    showModal('Yeni Kullanıcı Ekle', `
-        <div class="form-group">
-            <label>Kullanıcı Adı *</label>
-            <input type="text" id="user-username" required>
-        </div>
-        <div class="form-group">
-            <label>Şifre *</label>
-            <input type="password" id="user-password" required>
-        </div>
-        <div class="form-group">
-            <label>Rol *</label>
-            <select id="user-role">
-                <option value="user">Kullanıcı</option>
-                <option value="admin">Admin</option>
-                <option value="viewer">Görüntüleyici</option>
-            </select>
-        </div>
-    `, () => {
-        const username = document.getElementById('user-username').value.trim();
-        const password = document.getElementById('user-password').value.trim();
-        const role = document.getElementById('user-role').value;
-        
-        if (!username || !password) {
-            showToast('Tüm alanları doldurun', 'error');
-            return;
-        }
-        
-        database.ref('kullanicilar').push({ username, password, role })
-            .then(() => {
-                showToast('Kullanıcı eklendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
-    });
+    showToast('Kullanıcı yönetimi şimdilik devre dışı', 'warning');
 }
 
 window.editUser = function(id) {
-    const user = kullanicilarData.find(u => u.id === id);
-    if (!user) return;
-    
-    showModal('Kullanıcı Düzenle', `
-        <div class="form-group">
-            <label>Kullanıcı Adı *</label>
-            <input type="text" id="user-username" value="${user.username}" required>
-        </div>
-        <div class="form-group">
-            <label>Yeni Şifre (boş bırakılırsa değişmez)</label>
-            <input type="password" id="user-password">
-        </div>
-        <div class="form-group">
-            <label>Rol *</label>
-            <select id="user-role">
-                <option value="user" ${user.role === 'user' ? 'selected' : ''}>Kullanıcı</option>
-                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                <option value="viewer" ${user.role === 'viewer' ? 'selected' : ''}>Görüntüleyici</option>
-            </select>
-        </div>
-    `, () => {
-        const username = document.getElementById('user-username').value.trim();
-        const password = document.getElementById('user-password').value.trim();
-        const role = document.getElementById('user-role').value;
-        
-        if (!username) {
-            showToast('Kullanıcı adı boş olamaz', 'error');
-            return;
-        }
-        
-        const updateData = { username, role };
-        if (password) {
-            updateData.password = password;
-        }
-        
-        database.ref('kullanicilar/' + id).update(updateData)
-            .then(() => {
-                showToast('Kullanıcı güncellendi', 'success');
-                closeModal();
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
-    });
+    showToast('Kullanıcı yönetimi şimdilik devre dışı', 'warning');
 };
 
 window.deleteUser = function(id, username) {
-    if (confirm(`"${username}" kullanıcısını silmek istediğinizden emin misiniz?`)) {
-        database.ref('kullanicilar/' + id).remove()
-            .then(() => {
-                showToast('Kullanıcı silindi', 'success');
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
-    }
+    showToast('Kullanıcı yönetimi şimdilik devre dışı', 'warning');
 };
 
-// Ayarları kaydet
+// Ayarları kaydet (Şimdilik devre dışı)
 function saveAyarlar() {
-    const ayarlar = {
-        notifications: document.getElementById('setting-notifications').checked,
-        sounds: document.getElementById('setting-sounds').checked,
-        autoRefresh: document.getElementById('setting-auto-refresh').checked,
-        warningDays: parseInt(document.getElementById('setting-warning-days').value),
-        criticalDays: parseInt(document.getElementById('setting-critical-days').value),
-        itemsPerPage: parseInt(document.getElementById('setting-items-per-page').value)
-    };
-    
-    database.ref('ayarlar').set(ayarlar)
-        .then(() => {
-            showToast('Ayarlar kaydedildi', 'success');
-        })
-        .catch(error => {
-            showToast('Hata: ' + error.message, 'error');
-        });
+    showToast('Ayarlar kaydedildi (yerel)', 'success');
 }
 
 // Yedekleme
-function backupData() {
-    database.ref().once('value', (snapshot) => {
-        const data = snapshot.val();
+async function backupData() {
+    try {
+        const arizalar = await db.getArizalar();
+        const mudurlukler = await db.getMudurlukler();
+        const calisanlar = await db.getCalisanlar();
+        const teknisyenler = await db.getTeknisyenler();
+        
+        const data = {
+            arizalar,
+            mudurlukler,
+            calisanlar,
+            teknisyenler,
+            exportDate: new Date().toISOString()
+        };
+        
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -705,7 +583,10 @@ function backupData() {
         a.click();
         URL.revokeObjectURL(url);
         showToast('Yedek indirildi', 'success');
-    });
+    } catch (error) {
+        console.error('Yedekleme hatası:', error);
+        showToast('Yedekleme hatası: ' + error.message, 'error');
+    }
 }
 
 function restoreData(e) {
@@ -716,35 +597,22 @@ function restoreData(e) {
         return;
     }
     
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        try {
-            const data = JSON.parse(event.target.result);
-            database.ref().set(data)
-                .then(() => {
-                    showToast('Veriler geri yüklendi', 'success');
-                    setTimeout(() => location.reload(), 1500);
-                })
-                .catch(error => {
-                    showToast('Hata: ' + error.message, 'error');
-                });
-        } catch (error) {
-            showToast('Geçersiz yedek dosyası', 'error');
-        }
-    };
-    reader.readAsText(file);
+    showToast('Geri yükleme özelliği şimdilik devre dışı', 'warning');
 }
 
-function deleteAllData() {
+async function deleteAllData() {
     const confirmation = prompt('TÜM VERİLER SİLİNECEK! Onaylamak için "SIL" yazın:');
     if (confirmation === 'SIL') {
-        database.ref('arizalar').remove()
-            .then(() => {
-                showToast('Tüm arıza kayıtları silindi', 'success');
-            })
-            .catch(error => {
-                showToast('Hata: ' + error.message, 'error');
-            });
+        try {
+            // Tüm arızaları sil
+            const arizalar = await db.getArizalar();
+            for (const ariza of arizalar) {
+                await db.deleteAriza(ariza.id);
+            }
+            showToast('Tüm arıza kayıtları silindi', 'success');
+        } catch (error) {
+            showToast('Hata: ' + error.message, 'error');
+        }
     }
 }
 

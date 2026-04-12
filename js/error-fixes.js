@@ -1,32 +1,32 @@
 // Kullanıcı Hataları ve Edge Case Düzeltmeleri
 
-// 1. Firebase bağlantı hatası kontrolü - Sadeleştirilmiş
-let firebaseCheckAttempts = 0;
-const maxFirebaseCheckAttempts = 3;
-let firebaseCheckCompleted = false;
+// 1. Supabase bağlantı hatası kontrolü - Sadeleştirilmiş
+let supabaseCheckAttempts = 0;
+const maxSupabaseCheckAttempts = 3;
+let supabaseCheckCompleted = false;
 
-function checkFirebaseConnection() {
+function checkSupabaseConnection() {
     // Eğer kontrol zaten tamamlandıysa tekrar yapma
-    if (firebaseCheckCompleted) return;
+    if (supabaseCheckCompleted) return;
     
-    firebaseCheckAttempts++;
+    supabaseCheckAttempts++;
     
-    if (typeof database === 'undefined' || typeof firebase === 'undefined') {
-        if (firebaseCheckAttempts < maxFirebaseCheckAttempts) {
-            console.log(`Firebase kontrol ediliyor... Deneme ${firebaseCheckAttempts}/${maxFirebaseCheckAttempts}`);
-            setTimeout(checkFirebaseConnection, 2000);
+    if (typeof db === 'undefined' || typeof supabase === 'undefined') {
+        if (supabaseCheckAttempts < maxSupabaseCheckAttempts) {
+            console.log(`Supabase kontrol ediliyor... Deneme ${supabaseCheckAttempts}/${maxSupabaseCheckAttempts}`);
+            setTimeout(checkSupabaseConnection, 2000);
         } else {
-            console.error('Firebase yüklenemedi!');
-            firebaseCheckCompleted = true;
+            console.error('Supabase yüklenemedi!');
+            supabaseCheckCompleted = true;
         }
     } else {
-        console.log('Firebase başarıyla yüklendi');
-        firebaseCheckCompleted = true;
+        console.log('Supabase başarıyla yüklendi');
+        supabaseCheckCompleted = true;
     }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(checkFirebaseConnection, 1000);
+    setTimeout(checkSupabaseConnection, 1000);
 });
 
 // 2. İnternet bağlantısı kontrolü - Sadece gerçekten kesildiğinde uyar

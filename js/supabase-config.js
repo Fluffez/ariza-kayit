@@ -17,7 +17,21 @@ const db = {
             .order('timestamp', { ascending: false });
         
         if (error) throw error;
-        return data || [];
+        
+        // Convert snake_case to camelCase for compatibility
+        return (data || []).map(ariza => ({
+            id: ariza.id,
+            birim: ariza.birim,
+            cihazTuru: ariza.cihaz_turu,
+            arizaTuru: ariza.ariza_turu,
+            aciklama: ariza.aciklama,
+            yapilanIsler: ariza.yapilan_isler,
+            talepEden: ariza.talep_eden,
+            atananKisi: ariza.atanan_kisi,
+            durum: ariza.durum,
+            tarih: ariza.tarih,
+            timestamp: ariza.timestamp
+        }));
     },
 
     async addAriza(ariza) {

@@ -270,15 +270,13 @@ const atananSuggestions = document.getElementById('atanan-suggestions');
 
 let teknisyenler = [];
 
-// Teknisyenleri Firebase'den yükle
-if (typeof database !== 'undefined') {
-    database.ref('teknisyenler').on('value', (snapshot) => {
-        teknisyenler = [];
-        snapshot.forEach((child) => {
-            const data = child.val();
-            teknisyenler.push(data.name || data);
-        });
+// Teknisyenleri Supabase'den yükle
+if (typeof db !== 'undefined') {
+    db.getTeknisyenler().then(data => {
+        teknisyenler = data.map(t => t.name);
         console.log('Teknisyenler yüklendi:', teknisyenler.length);
+    }).catch(error => {
+        console.error('Teknisyen yükleme hatası:', error);
     });
 }
 

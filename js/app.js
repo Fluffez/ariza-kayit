@@ -1,35 +1,39 @@
-// Müdürlükler listesi - Firebase'den yüklenecek
+// Müdürlükler listesi - Supabase'den yüklenecek
 let mudurlukler = [];
 
-// Çalışanlar listesi - Firebase'den yüklenecek
+// Çalışanlar listesi - Supabase'den yüklenecek
 let calisanlar = [];
 
-// Firebase'den listeleri yükle
-function loadListsFromFirebase() {
-    // Müdürlükleri yükle
-    database.ref('mudurlukler').on('value', (snapshot) => {
-        mudurlukler = [];
-        snapshot.forEach((child) => {
-            const data = child.val();
-            mudurlukler.push(data.name || data);
-        });
+// Supabase'den listeleri yükle
+async function loadListsFromSupabase() {
+    try {
+        // Müdürlükleri yükle
+        const { data: mudurluklerData, error: mudurlukError } = await supabase
+            .from('mudurlukler')
+            .select('name')
+            .order('name');
+        
+        if (mudurlukError) throw mudurlukError;
+        mudurlukler = mudurluklerData.map(m => m.name);
         console.log('Müdürlükler yüklendi:', mudurlukler.length);
-    });
-    
-    // Çalışanları yükle
-    database.ref('calisanlar').on('value', (snapshot) => {
-        calisanlar = [];
-        snapshot.forEach((child) => {
-            const data = child.val();
-            calisanlar.push(data.name || data);
-        });
+        
+        // Çalışanları yükle
+        const { data: calisanlarData, error: calisanError } = await supabase
+            .from('calisanlar')
+            .select('name')
+            .order('name');
+        
+        if (calisanError) throw calisanError;
+        calisanlar = calisanlarData.map(c => c.name);
         console.log('Çalışanlar yüklendi:', calisanlar.length);
-    });
+    } catch (error) {
+        console.error('Liste yükleme hatası:', error);
+    }
 }
 
 // Sayfa yüklendiğinde listeleri çek
-if (typeof database !== 'undefined') {
-    loadListsFromFirebase();
+if (typeof supabase !== 'undefined') {
+    loadListsFromSupabase();
 }
 
 // Login kontrolü
@@ -330,21 +334,21 @@ function showMainApp() {
         }
     }
     
-    // Firebase kontrolü - İyileştirilmiş
-    if (typeof database === 'undefined') {
-        console.warn('Firebase henüz yüklenmedi, bekleniyor...');
+    // Supabase kontrolü
+    if (typeof db === 'undefined') {
+        console.warn('Supabase henüz yüklenmedi, bekleniyor...');
         let retryCount = 0;
         const maxRetries = 5;
         
-        const checkFirebase = setInterval(() => {
+        const checkSupabase = setInterval(() => {
             retryCount++;
-            if (typeof database !== 'undefined') {
-                console.log('Firebase yüklendi, veriler çekiliyor...');
-                clearInterval(checkFirebase);
+            if (typeof db !== 'undefined') {
+                console.log('Supabase yüklendi, veriler çekiliyor...');
+                clearInterval(checkSupabase);
                 arizalariYukle();
             } else if (retryCount >= maxRetries) {
-                console.error('Firebase yüklenemedi');
-                clearInterval(checkFirebase);
+                console.error('Supabase yüklenemedi');
+                clearInterval(checkSupabase);
                 showToast('Veritabanı bağlantısı kurulamadı. Lütfen sayfayı yenileyin.', 'error');
             }
         }, 1000);
@@ -657,8 +661,8 @@ form.addEventListener('submit', async (e) => {
         return;
     }
     
-    // Firebase kontrolü
-    if (typeof database === 'undefined') {
+    // Supabase kontrolü
+    if (typeof db === 'undefined') {
         showToast('Veritabanı bağlantısı yok. Lütfen sayfayı yenileyin.', 'error');
         return;
     }
@@ -671,12 +675,12 @@ form.addEventListener('submit', async (e) => {
     
     const arizaData = {
         birim: sanitizeHTML(birimValue),
-        cihazTuru: sanitizeHTML(cihazValue),
-        arizaTuru: sanitizeHTML(arizaTuruValue),
+        cihaz_turu: sanitizeHTML(cihazValue),
+        ariza_turu: sanitizeHTML(arizaTuruValue),
         aciklama: sanitizeHTML(aciklamaValue) || '',
-        yapilanIsler: sanitizeHTML(yapilanValue),
-        talepEden: sanitizeHTML(talepValue),
-        atananKisi: sanitizeHTML(document.getElementById('atanan-kisi')?.value.trim() || ''),
+        yapilan_isler: sanitizeHTML(yapilanValue),
+        talep_eden: sanitizeHTML(talepValue),
+        atanan_kisi: sanitizeHTML(document.getElementById('atanan-kisi')?.value.trim() || ''),
         durum: editingId ? undefined : 'beklemede',
         tarih: safeDateFormat(Date.now()),
         timestamp: Date.now()
@@ -684,11 +688,11 @@ form.addEventListener('submit', async (e) => {
     
     try {
         if (editingId) {
-            await database.ref('arizalar/' + editingId).update(arizaData);
+            await db.updateAriza(editingId, arizaData);
             showToast('Kayıt başarıyla güncellendi', 'success');
             if (typeof playSound === 'function') playSound('success');
         } else {
-            await database.ref('arizalar').push(arizaData);
+            await db.addAriza(arizaData);
             showToast('Yeni kayıt başarıyla eklendi', 'success');
             if (typeof playSound === 'function') playSound('success');
         }
@@ -714,18 +718,9 @@ durumFiltre.addEventListener('change', () => {
 });
 
 // Arızaları yükle
-function arizalariYukle() {
-    database.ref('arizalar').orderByChild('timestamp').on('value', (snapshot) => {
-        tumArizalar = [];
-        snapshot.forEach((childSnapshot) => {
-            tumArizalar.push({
-                id: childSnapshot.key,
-                ...childSnapshot.val()
-            });
-        });
-        
-        // Tersten sırala (en yeni üstte)
-        tumArizalar.reverse();
+async function arizalariYukle() {
+    try {
+        tumArizalar = await db.getArizalar();
         filtrelenmisArizalar = tumArizalar;
         
         // Filtreleri uygula
@@ -734,7 +729,16 @@ function arizalariYukle() {
         } else {
             arizalariGoster(tumArizalar);
         }
-    });
+        
+        // Realtime updates için subscribe
+        db.subscribeToArizalar((payload) => {
+            console.log('Arıza değişikliği:', payload);
+            arizalariYukle(); // Yeniden yükle
+        });
+    } catch (error) {
+        console.error('Arıza yükleme hatası:', error);
+        showToast('Veriler yüklenirken hata oluştu', 'error');
+    }
 }
 
 // Arızaları göster
@@ -814,38 +818,43 @@ function durumMetni(durum) {
 }
 
 // Durum değiştir
-function durumDegistir(id, yeniDurum) {
-    database.ref('arizalar/' + id).update({
-        durum: yeniDurum
-    })
-    .then(() => {
+async function durumDegistir(id, yeniDurum) {
+    try {
+        await db.updateAriza(id, { durum: yeniDurum });
         const durumMetinleri = {
             'beklemede': 'Beklemede',
             'devam-ediyor': 'Devam Ediyor',
             'tamamlandi': 'Tamamlandı'
         };
         showToast(`Durum "${durumMetinleri[yeniDurum]}" olarak güncellendi`, 'success');
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Hata:', error);
         showToast('Durum güncellenirken bir hata oluştu!', 'error');
-    });
+    }
 }
 
 // Düzenle
-function duzenle(id) {
-    database.ref('arizalar/' + id).once('value', (snapshot) => {
-        const ariza = snapshot.val();
+async function duzenle(id) {
+    try {
+        const { data, error } = await supabase
+            .from('arizalar')
+            .select('*')
+            .eq('id', id)
+            .single();
+        
+        if (error) throw error;
+        
+        const ariza = data;
         if (ariza) {
             editingId = id;
             document.getElementById('birim').value = ariza.birim || '';
-            document.getElementById('cihaz-turu').value = ariza.cihazTuru || '';
-            document.getElementById('ariza-turu').value = ariza.arizaTuru || '';
+            document.getElementById('cihaz-turu').value = ariza.cihaz_turu || '';
+            document.getElementById('ariza-turu').value = ariza.ariza_turu || '';
             document.getElementById('aciklama').value = ariza.aciklama || '';
-            document.getElementById('yapilan-isler').value = ariza.yapilanIsler || '';
-            document.getElementById('talep-eden').value = ariza.talepEden || '';
+            document.getElementById('yapilan-isler').value = ariza.yapilan_isler || '';
+            document.getElementById('talep-eden').value = ariza.talep_eden || '';
             if (document.getElementById('atanan-kisi')) {
-                document.getElementById('atanan-kisi').value = ariza.atananKisi || '';
+                document.getElementById('atanan-kisi').value = ariza.atanan_kisi || '';
             }
             
             // Hata mesajlarını temizle
@@ -855,7 +864,10 @@ function duzenle(id) {
             document.querySelector('.modal-header h3').textContent = 'Arıza Kaydını Düzenle';
             modal.classList.add('active');
         }
-    });
+    } catch (error) {
+        console.error('Düzenleme hatası:', error);
+        showToast('Kayıt yüklenirken hata oluştu', 'error');
+    }
 }
 
 // Sil - Global fonksiyon
@@ -866,17 +878,16 @@ window.silArizaKaydi = function(id) {
     const confirmModal = document.getElementById('confirm-modal');
     confirmModal.classList.add('active');
     
-    deleteCallback = () => {
+    deleteCallback = async () => {
         console.log('Silme onaylandı, siliniyor...');
-        database.ref('arizalar/' + id).remove()
-            .then(() => {
-                console.log('Kayıt başarıyla silindi');
-                showToast('Kayıt başarıyla silindi', 'success');
-            })
-            .catch(error => {
-                console.error('Silme hatası:', error);
-                showToast('Kayıt silinirken bir hata oluştu!', 'error');
-            });
+        try {
+            await db.deleteAriza(id);
+            console.log('Kayıt başarıyla silindi');
+            showToast('Kayıt başarıyla silindi', 'success');
+        } catch (error) {
+            console.error('Silme hatası:', error);
+            showToast('Kayıt silinirken bir hata oluştu!', 'error');
+        }
     };
 }
 

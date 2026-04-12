@@ -1,369 +1,314 @@
 # Döşemealtı Belediyesi - Bilgi İşlem Arıza Kayıt Sistemi
 
-Modern, güvenli ve kullanıcı dostu arıza takip sistemi. **Supabase** (PostgreSQL) ve **Netlify** ile çalışır.
+Modern, güvenli ve kullanıcı dostu arıza takip sistemi. Supabase (PostgreSQL) veritabanı ile çalışır.
 
-## 🚀 Hızlı Başlangıç (5 Dakika)
+## 🚀 Özellikler
 
-### 1. Supabase Kurulumu
-1. [supabase.com](https://supabase.com) üzerinden ücretsiz hesap oluşturun
-2. Yeni proje oluşturun
-3. SQL Editor'de `supabase-schema.sql` dosyasını çalıştırın
-4. Settings > API'den `URL` ve `anon key` alın
-5. `js/supabase-config.js` dosyasına yapıştırın
-
-### 2. Netlify'a Deploy
-**En Kolay Yol:**
-1. [app.netlify.com/drop](https://app.netlify.com/drop) adresine gidin
-2. `ariza-kayit` klasörünü sürükleyin
-3. Hazır! 🎉
-
-**GitHub ile (Otomatik Güncellemeler):**
-```bash
-git push origin main
-```
-Netlify'da "Import from GitHub" seçin.
-
-### 3. Giriş Yapın
-- **Admin**: `admin` / `admin123`
-- **Kullanıcı**: `dosemealti123` / `dosemealti123`
-
-⚠️ **Şifreleri hemen değiştirin!**
-
----
-
-## ✨ Özellikler
-
-### 📋 Temel
-- ✅ Arıza kaydı oluşturma/düzenleme/silme
+### Temel Özellikler
+- ✅ Arıza kaydı oluşturma, düzenleme, silme
 - ✅ Durum takibi (Beklemede, Devam Ediyor, Tamamlandı)
+- ✅ Müdürlük, çalışan ve teknisyen yönetimi
 - ✅ Gelişmiş arama ve filtreleme
 - ✅ Excel ve PDF export
-- ✅ Detaylı raporlama ve grafikler
-- ✅ Dark mode
-- ✅ Responsive tasarım
-- ✅ Realtime güncellemeler
+- ✅ Gerçek zamanlı veri senkronizasyonu
+- ✅ Responsive tasarım (mobil uyumlu)
 
-### 👨‍💼 Admin Paneli
-- ✅ Müdürlük yönetimi
-- ✅ Çalışan yönetimi
-- ✅ Teknisyen yönetimi
-- ✅ Kullanıcı yönetimi
-- ✅ Sistem ayarları
-- ✅ Yedekleme/geri yükleme
-
-### 🔒 Güvenlik
+### Güvenlik Özellikleri
 - 🔒 Rate limiting (DDoS koruması)
 - 🔒 Başarısız giriş takibi
-- 🔒 Otomatik engelleme (3 yanlış deneme)
-- 🔒 XSS koruması
-- 🔒 SQL Injection koruması
-- 🔒 Input validasyonu
-- 🔒 Session yönetimi (1 dk timeout)
-- 🔒 CSRF koruması
-- 🔒 Clickjacking koruması
+- 🔒 XSS ve SQL injection koruması
+- 🔒 Session yönetimi (1 dakika timeout)
+- 🔒 CSRF token desteği
 - 🔒 Browser fingerprinting
 
----
+### Kullanıcı Deneyimi
+- 🎨 Dark/Light mode
+- 🔔 Toast bildirimleri
+- 🎵 Ses efektleri
+- 📊 İstatistikler ve grafikler
+- 📈 Raporlama sistemi
+- ⚡ Hızlı autocomplete
 
-## 🛠️ Teknolojiler
+## 📋 Gereksinimler
 
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Backend**: Supabase (PostgreSQL)
-- **Hosting**: Netlify
-- **Libraries**: Chart.js, SheetJS, jsPDF
+- Modern web tarayıcı (Chrome, Firefox, Safari, Edge)
+- Supabase hesabı (ücretsiz)
+- Netlify hesabı (deployment için, opsiyonel)
 
----
+## 🔧 Kurulum
 
-## 📦 Kurulum Detayları
+### 1. Supabase Projesi Oluşturma
 
-### Supabase Kurulumu
+1. [Supabase](https://supabase.com) adresine gidin ve ücretsiz hesap oluşturun
+2. "New Project" butonuna tıklayın
+3. Proje adı, veritabanı şifresi ve bölge seçin
+4. Projeniz hazır olduğunda "Settings" > "API" bölümüne gidin
+5. `Project URL` ve `anon public` key'i kopyalayın
 
-1. **Proje Oluştur**
-   - [supabase.com](https://supabase.com) > New Project
-   - Proje adı: `ariza-kayit`
-   - Database şifresi belirleyin
-   - Region: Europe (Frankfurt) önerilen
+### 2. Veritabanı Şemasını Oluşturma
 
-2. **Database Schema Oluştur**
-   - Sol menüden "SQL Editor"
-   - "New query" tıklayın
-   - `supabase-schema.sql` içeriğini yapıştırın
-   - "Run" tıklayın
-   - ✅ "Database schema created successfully!" göreceksiniz
+1. Supabase Dashboard'da "SQL Editor" bölümüne gidin
+2. `supabase-schema.sql` dosyasının içeriğini kopyalayın
+3. SQL Editor'e yapıştırın ve "Run" butonuna tıklayın
+4. Tablolar başarıyla oluşturulacak
 
-3. **API Keys Al**
-   - Settings > API
-   - `Project URL` kopyalayın
-   - `anon public` key kopyalayın
+### 3. Proje Yapılandırması
 
-4. **Config Dosyasını Güncelle**
-   ```javascript
-   // js/supabase-config.js
-   const SUPABASE_URL = 'https://xxxxx.supabase.co';
-   const SUPABASE_ANON_KEY = 'eyJhbGc...';
-   ```
+`js/supabase-config.js` dosyasını açın ve Supabase bilgilerinizi girin:
 
-### Netlify Deployment
+```javascript
+const SUPABASE_URL = 'https://xxxxx.supabase.co'; // Kendi URL'niz
+const SUPABASE_ANON_KEY = 'eyJhbGc...'; // Kendi anon key'iniz
+```
 
-**Yöntem 1: Drag & Drop (2 Dakika)**
-1. [app.netlify.com/drop](https://app.netlify.com/drop)
-2. Klasörü sürükle
-3. Hazır!
+### 4. Yerel Test
 
-**Yöntem 2: GitHub (Otomatik)**
-1. GitHub'a push edin
-2. Netlify > "Add new site" > "Import from GitHub"
-3. Repo seçin
-4. Settings:
-   - Build command: Boş
-   - Publish directory: `.`
-5. Deploy!
+Projeyi yerel olarak test etmek için bir HTTP sunucusu kullanın:
 
-**Yöntem 3: CLI**
 ```bash
+# Python ile
+python -m http.server 8000
+
+# Node.js ile (http-server)
+npx http-server
+
+# VS Code Live Server extension ile
+# Sağ tık > "Open with Live Server"
+```
+
+Tarayıcıda `http://localhost:8000` adresine gidin.
+
+## 🌐 Netlify'a Deployment
+
+### Otomatik Deployment
+
+1. GitHub'a projeyi push edin:
+```bash
+git add .
+git commit -m "Supabase migration complete"
+git push origin main
+```
+
+2. [Netlify](https://netlify.com) hesabınıza giriş yapın
+3. "Add new site" > "Import an existing project" seçin
+4. GitHub repository'nizi seçin
+5. Build settings:
+   - Build command: (boş bırakın)
+   - Publish directory: `.`
+6. "Deploy site" butonuna tıklayın
+
+### Manuel Deployment
+
+```bash
+# Netlify CLI kurulumu
 npm install -g netlify-cli
+
+# Giriş yapın
 netlify login
+
+# Deploy edin
 netlify deploy --prod
 ```
 
----
+## 👤 Kullanıcı Bilgileri
 
-## 📊 Database Yapısı
+### Admin Girişi
+- Kullanıcı adı: `admin`
+- Şifre: `admin123`
+- Yetkiler: Tüm işlemler + Admin paneli erişimi
 
-```sql
-arizalar (
-  id UUID PRIMARY KEY,
-  birim TEXT,
-  cihaz_turu TEXT,
-  ariza_turu TEXT,
-  aciklama TEXT,
-  yapilan_isler TEXT,
-  talep_eden TEXT,
-  atanan_kisi TEXT,
-  durum TEXT,
-  tarih TEXT,
-  timestamp BIGINT,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-)
+### Normal Kullanıcı Girişi
+- Kullanıcı adı: `dosemealti123`
+- Şifre: `dosemealti123`
+- Yetkiler: Arıza kayıtları oluşturma, görüntüleme, düzenleme
 
-mudurlukler (id, name)
-calisanlar (id, name)
-teknisyenler (id, name)
-failed_logins (id, fingerprint, username, timestamp, ...)
-blocked_fingerprints (id, fingerprint, blocked_at, reason)
+**⚠️ ÖNEMLİ:** Canlı ortama geçmeden önce bu şifreleri mutlaka değiştirin!
+
+## 📁 Proje Yapısı
+
+```
+ariza-kayit/
+├── index.html              # Ana sayfa
+├── admin.html              # Admin paneli
+├── css/
+│   ├── style.css          # Ana sayfa stilleri
+│   └── admin.css          # Admin paneli stilleri
+├── js/
+│   ├── supabase-config.js # Supabase bağlantı ve helper fonksiyonları
+│   ├── app.js             # Ana uygulama mantığı
+│   ├── admin.js           # Admin paneli mantığı
+│   ├── features.js        # Arama, filtreleme, export
+│   ├── reports.js         # Raporlama ve grafikler
+│   ├── security.js        # Güvenlik özellikleri
+│   └── error-fixes.js     # Hata yönetimi
+├── supabase-schema.sql    # Veritabanı şeması
+├── netlify.toml           # Netlify yapılandırması
+├── _redirects             # Netlify yönlendirmeleri
+└── README.md              # Bu dosya
 ```
 
----
+## 🔄 Firebase'den Supabase'e Geçiş
 
-## 🎯 Kullanım
+Proje Firebase'den Supabase'e tamamen geçirilmiştir. Değişiklikler:
 
-### Arıza Ekleme
-1. `+` butonuna tıkla
-2. Formu doldur
-3. Kaydet
+### Veritabanı Yapısı
+- Firebase Realtime Database → PostgreSQL (Supabase)
+- Nested JSON → İlişkisel tablolar
+- Push keys → UUID primary keys
+- camelCase → snake_case (veritabanında)
 
-### Durum Güncelleme
-1. Arıza kartında "Devam Ediyor" veya "Tamamla" tıkla
-2. Otomatik güncellenir
+### API Değişiklikleri
+- `database.ref()` → `supabase.from()`
+- `.push()` → `.insert()`
+- `.update()` → `.update()`
+- `.remove()` → `.delete()`
+- `.on('value')` → Realtime subscriptions
 
-### Raporlar
-1. "📊 Raporlar" butonuna tıkla
-2. Grafikleri görüntüle
-3. Excel/PDF export
+### Avantajlar
+- ✅ Daha güçlü sorgulama (SQL)
+- ✅ İlişkisel veri modeli
+- ✅ Daha iyi performans
+- ✅ Ücretsiz kotada daha fazla kaynak
+- ✅ Row Level Security (RLS)
+- ✅ Otomatik API oluşturma
 
-### Admin Paneli
-1. Admin olarak giriş yap
-2. "⚙️ Admin" butonuna tıkla
-3. Yönetim işlemlerini yap
+## 📊 Veritabanı Tabloları
 
----
+### arizalar
+Arıza kayıtlarını saklar.
+- `id` (UUID, PK)
+- `birim` (TEXT) - Müdürlük adı
+- `cihaz_turu` (TEXT) - Bilgisayar, Yazıcı, vb.
+- `ariza_turu` (TEXT) - Donanım, Yazılım, vb.
+- `aciklama` (TEXT) - Arıza detayı
+- `yapilan_isler` (TEXT) - Yapılan işlemler
+- `talep_eden` (TEXT) - Talep eden kişi
+- `atanan_kisi` (TEXT) - Atanan teknisyen
+- `durum` (TEXT) - beklemede, devam-ediyor, tamamlandi
+- `tarih` (TEXT) - Formatlanmış tarih
+- `timestamp` (BIGINT) - Unix timestamp
 
-## 🔒 Güvenlik Detayları
+### mudurlukler
+Müdürlük listesi.
+- `id` (UUID, PK)
+- `name` (TEXT) - Müdürlük adı
+
+### calisanlar
+Çalışan listesi.
+- `id` (UUID, PK)
+- `name` (TEXT) - Çalışan adı
+
+### teknisyenler
+Teknisyen listesi.
+- `id` (UUID, PK)
+- `name` (TEXT) - Teknisyen adı
+
+### failed_logins
+Başarısız giriş denemeleri (güvenlik).
+- `id` (UUID, PK)
+- `fingerprint` (TEXT) - Browser fingerprint
+- `username` (TEXT) - Denenen kullanıcı adı
+- `timestamp` (BIGINT) - Deneme zamanı
+- `user_agent`, `language`, `platform`, vb.
+
+## 🛡️ Güvenlik
 
 ### Rate Limiting
-- 5 deneme / 5 dakika
-- Aşılırsa bekleme süresi gösterilir
+- 5 giriş denemesi / 5 dakika
+- Aşıldığında otomatik bloke
 
-### Başarısız Giriş Takibi
-- Her yanlış giriş Supabase'e kaydedilir
-- Browser fingerprint ile kullanıcı tanıma
-- Kayıt bilgileri:
-  - Fingerprint (IP benzeri)
-  - Kullanıcı adı
-  - Zaman damgası
-  - User Agent, Platform, Dil
-  - Ekran çözünürlüğü
-  - Saat dilimi
+### Failed Login Tracking
+- Her başarısız deneme kaydedilir
+- 3 başarısız denemeden sonra bloke
+- Browser fingerprinting ile takip
 
-### Otomatik Engelleme
-- 3 yanlış denemeden sonra engel
-- 10 dakika süreyle
-- `blocked_fingerprints` tablosuna kaydedilir
+### Input Validation
+- XSS koruması (HTML sanitization)
+- SQL injection kontrolü
+- Maksimum karakter limitleri
+- Özel karakter filtreleme
 
-### Input Sanitizasyonu
-- Tüm input'lar temizlenir
-- HTML karakterleri escape edilir
-- SQL Injection pattern tespiti
-- Maksimum uzunluk kontrolü
+### Session Management
+- 1 dakika inaktivite timeout
+- CSRF token desteği
+- Secure session storage
 
-### Session Yönetimi
-- 1 dakika inaktivite sonrası logout
-- Aktivite izleme (mouse, keyboard, scroll)
-- CSRF token her oturumda
+## 📱 Responsive Tasarım
 
----
+- 📱 Mobil (< 768px): Tek sütun, büyük butonlar
+- 💻 Tablet (768px - 1024px): İki sütun
+- 🖥️ Desktop (> 1024px): Tam özellikli görünüm
 
-## 🎨 Özelleştirme
+## 🎨 Dark Mode
 
-### Renk Teması
-`css/style.css` ve `css/admin.css`:
-```css
-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-```
+- Otomatik tema geçişi
+- LocalStorage'da tercih kaydı
+- Tüm sayfalarda senkronize
+- Göz dostu renkler
 
-### Logo Ekleme
-`index.html` ve `admin.html` header bölümüne ekleyin.
+## 📈 Raporlama
 
-### Şifre Değiştirme
-`js/app.js` dosyasında:
-```javascript
-if (username === 'admin' && password === 'YENİ_ŞİFRE') {
-```
+### İstatistikler
+- Toplam arıza sayısı
+- Durum bazlı dağılım
+- Ortalama çözüm süresi
+- Haftalık/aylık trendler
 
----
+### Grafikler
+- Müdürlük bazlı bar chart
+- Durum dağılımı pie chart
+- Aylık trend line chart
+- Cihaz türü doughnut chart
 
-## 🐛 Sorun Giderme
+### Export
+- Excel (.xlsx) formatında
+- PDF raporu
+- Tüm veriler dahil
+- Türkçe karakter desteği
 
-### "Supabase bağlantı hatası"
-- `js/supabase-config.js` doğru mu?
-- Supabase projesi aktif mi?
-- RLS politikaları doğru mu?
+## 🔧 Sorun Giderme
 
-### "Veri gelmiyor"
-- SQL schema çalıştırıldı mı?
-- Tablolar oluştu mu? (Supabase > Table Editor)
-- Console'da hata var mı? (F12)
+### Supabase Bağlantı Hatası
+1. `supabase-config.js` dosyasındaki URL ve key'i kontrol edin
+2. Supabase Dashboard'da projenin aktif olduğundan emin olun
+3. Tarayıcı console'unda hata mesajlarını kontrol edin
 
-### "Admin paneli açılmıyor"
-- URL: `https://site.netlify.app/admin.html`
-- Admin olarak giriş yaptınız mı?
+### Veriler Görünmüyor
+1. SQL şemasının doğru çalıştırıldığından emin olun
+2. Supabase Dashboard > Table Editor'de tabloları kontrol edin
+3. RLS (Row Level Security) politikalarını kontrol edin
 
----
-
-## 📈 Performans
-
-### Supabase Avantajları
-- ✅ PostgreSQL (gerçek SQL)
-- ✅ Otomatik indeksleme
-- ✅ Connection pooling
-- ✅ Realtime subscriptions
-- ✅ Row Level Security
-
-### Netlify Avantajları
-- ✅ Global CDN
-- ✅ Otomatik HTTPS
-- ✅ Asset optimization
-- ✅ Gzip/Brotli compression
-
----
-
-## 📊 Ücretsiz Limitler
-
-### Supabase Free Tier
-- ✅ 500 MB database
-- ✅ 1 GB file storage
-- ✅ 2 GB bandwidth/ay
-- ✅ 50,000 monthly active users
-- ✅ Sınırsız API requests
-
-### Netlify Free Tier
-- ✅ 100 GB bandwidth/ay
-- ✅ 300 build dakikası/ay
-- ✅ Sınırsız site
-- ✅ Otomatik HTTPS
-
-**Sonuç**: Küçük-orta ölçekli projeler için tamamen ücretsiz! 🎉
-
----
-
-## 🔄 Güncelleme
-
-### GitHub ile
-```bash
-git add .
-git commit -m "Update"
-git push
-```
-Netlify otomatik deploy eder!
-
-### Manuel
-1. Dosyaları düzenleyin
-2. Netlify'a tekrar sürükleyin
-
----
-
-## 📝 Yapılacaklar
-
-- [ ] Email bildirimleri
-- [ ] SMS entegrasyonu
-- [ ] Mobil uygulama
-- [ ] Çoklu dil desteği
-- [ ] Gelişmiş raporlama
-- [ ] QR kod ile takip
-- [ ] Dosya ekleme
-- [ ] Yorum sistemi
-
----
-
-## 🤝 Katkıda Bulunma
-
-1. Fork edin
-2. Feature branch: `git checkout -b feature/amazing`
-3. Commit: `git commit -m 'Add amazing feature'`
-4. Push: `git push origin feature/amazing`
-5. Pull Request açın
-
----
-
-## 📄 Lisans
-
-MIT License - Özgürce kullanabilirsiniz!
-
----
+### CORS Hatası
+1. Supabase Dashboard > Settings > API > CORS'u kontrol edin
+2. Domain'inizi whitelist'e ekleyin
+3. Netlify deployment sonrası domain güncelleyin
 
 ## 📞 Destek
 
-- **GitHub Issues**: Sorunları bildirin
-- **Email**: info@dosemealti.bel.tr
-- **Supabase Docs**: [supabase.com/docs](https://supabase.com/docs)
-- **Netlify Docs**: [docs.netlify.com](https://docs.netlify.com)
+Sorularınız için:
+- GitHub Issues
+- Supabase Documentation: https://supabase.com/docs
+- Netlify Documentation: https://docs.netlify.com
+
+## 📝 Lisans
+
+Bu proje Döşemealtı Belediyesi için geliştirilmiştir.
+
+## 🔄 Güncellemeler
+
+### v2.0.0 (2024)
+- ✅ Firebase'den Supabase'e tam geçiş
+- ✅ PostgreSQL veritabanı
+- ✅ İyileştirilmiş güvenlik
+- ✅ Daha hızlı performans
+- ✅ Realtime updates
+
+### v1.0.0 (2024)
+- ✅ İlk sürüm
+- ✅ Firebase Realtime Database
+- ✅ Temel CRUD işlemleri
+- ✅ Admin paneli
 
 ---
 
-## 🙏 Teşekkürler
-
-- [Supabase](https://supabase.com) - Backend
-- [Netlify](https://netlify.com) - Hosting
-- [Chart.js](https://chartjs.org) - Grafikler
-- [SheetJS](https://sheetjs.com) - Excel
-- [jsPDF](https://github.com/parallax/jsPDF) - PDF
-
----
-
-## ✅ Deployment Checklist
-
-- [ ] Supabase projesi oluşturuldu
-- [ ] SQL schema çalıştırıldı
-- [ ] Supabase config güncellendi
-- [ ] Netlify'a deploy edildi
-- [ ] HTTPS aktif
-- [ ] Admin şifresi değiştirildi
-- [ ] Test edildi
-- [ ] Yedek alındı
-
----
-
-**Döşemealtı Belediyesi Bilgi İşlem Müdürlüğü** 🏛️
-
-*Modern, Güvenli, Hızlı* ⚡
+**Geliştirici Notu:** Tüm Firebase referansları kaldırılmış ve Supabase'e geçiş tamamlanmıştır. Sistem production-ready durumda.

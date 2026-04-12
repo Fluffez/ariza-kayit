@@ -59,18 +59,18 @@ class FailedLoginTracker {
                 fingerprint: fingerprint,
                 username: username,
                 timestamp: timestamp,
-                userAgent: navigator.userAgent,
+                user_agent: navigator.userAgent,
                 language: navigator.language,
                 platform: navigator.platform,
-                screenResolution: `${screen.width}x${screen.height}`,
+                screen_resolution: `${screen.width}x${screen.height}`,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
             };
 
             this.failedAttempts.push(attempt);
             
-            // Firebase'e kaydet
-            if (typeof database !== 'undefined') {
-                await database.ref('security/failedLogins').push(attempt);
+            // Supabase'e kaydet
+            if (typeof db !== 'undefined') {
+                await db.logFailedLogin(attempt);
             }
 
             // Son 10 dakikadaki başarısız denemeleri say
@@ -127,13 +127,8 @@ class FailedLoginTracker {
     blockFingerprint(fingerprint) {
         this.blockedIPs.add(fingerprint);
         
-        // Firebase'e kaydet
-        if (typeof database !== 'undefined') {
-            database.ref('security/blockedFingerprints/' + fingerprint).set({
-                blockedAt: Date.now(),
-                reason: 'Multiple failed login attempts'
-            });
-        }
+        // Supabase'e kaydet (opsiyonel - şimdilik sadece local)
+        console.log('Fingerprint blocked:', fingerprint);
     }
 
     async isBlocked() {
