@@ -13,24 +13,103 @@
     <!-- Login Screen -->
     <div id="login-screen" class="login-screen">
         <div class="login-box">
+            <div class="login-avatar">
+                <div class="avatar-circle" id="mascot">
+                    <!-- Maskot SVG - Sevimli Panda -->
+                    <svg viewBox="0 0 200 200" class="mascot-svg">
+                        <!-- Kafa (Beyaz) -->
+                        <circle cx="100" cy="100" r="70" fill="white"/>
+                        
+                        <!-- Sol Kulak (Siyah) -->
+                        <circle cx="60" cy="60" r="25" fill="#2d3748"/>
+                        
+                        <!-- Sağ Kulak (Siyah) -->
+                        <circle cx="140" cy="60" r="25" fill="#2d3748"/>
+                        
+                        <!-- Sol Göz Çevresi (Siyah) -->
+                        <ellipse cx="75" cy="90" rx="20" ry="25" fill="#2d3748"/>
+                        
+                        <!-- Sağ Göz Çevresi (Siyah) -->
+                        <ellipse cx="125" cy="90" rx="20" ry="25" fill="#2d3748"/>
+                        
+                        <!-- Sol Göz (Normal - Beyaz) -->
+                        <g id="left-eye-normal">
+                            <ellipse cx="75" cy="90" rx="10" ry="15" fill="white"/>
+                            <circle cx="75" cy="92" r="6" fill="#2d3748"/>
+                            <circle cx="77" cy="90" r="2" fill="white"/>
+                        </g>
+                        
+                        <!-- Sağ Göz (Normal - Beyaz) -->
+                        <g id="right-eye-normal">
+                            <ellipse cx="125" cy="90" rx="10" ry="15" fill="white"/>
+                            <circle cx="125" cy="92" r="6" fill="#2d3748"/>
+                            <circle cx="127" cy="90" r="2" fill="white"/>
+                        </g>
+                        
+                        <!-- Sol Göz (Kapalı) -->
+                        <g id="left-eye-closed" style="display: none;">
+                            <path d="M 65 90 Q 75 85 85 90" stroke="#2d3748" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        </g>
+                        
+                        <!-- Sağ Göz (Kapalı) -->
+                        <g id="right-eye-closed" style="display: none;">
+                            <path d="M 115 90 Q 125 85 135 90" stroke="#2d3748" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        </g>
+                        
+                        <!-- Burun -->
+                        <ellipse cx="100" cy="110" rx="8" ry="6" fill="#2d3748"/>
+                        
+                        <!-- Ağız -->
+                        <path d="M 100 110 L 100 120" stroke="#2d3748" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 80 125 Q 100 135 120 125" stroke="#2d3748" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        
+                        <!-- Sol Pati (Siyah) -->
+                        <g id="left-hand" class="hand">
+                            <circle cx="40" cy="140" r="20" fill="#2d3748"/>
+                            <circle cx="35" cy="135" r="6" fill="#4a5568"/>
+                            <circle cx="45" cy="133" r="6" fill="#4a5568"/>
+                            <circle cx="35" cy="145" r="6" fill="#4a5568"/>
+                        </g>
+                        
+                        <!-- Sağ Pati (Siyah) -->
+                        <g id="right-hand" class="hand">
+                            <circle cx="160" cy="140" r="20" fill="#2d3748"/>
+                            <circle cx="155" cy="133" r="6" fill="#4a5568"/>
+                            <circle cx="165" cy="135" r="6" fill="#4a5568"/>
+                            <circle cx="165" cy="145" r="6" fill="#4a5568"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
             <div class="login-header">
                 <h1>Döşemealtı Belediyesi</h1>
-                <h2>Bilgi İşlem Arıza Kayıt Sistemi</h2>
+                <p>Bilgi İşlem Arıza Kayıt Sistemi</p>
             </div>
             <form id="login-form">
                 <div class="form-group">
-                    <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+                    <label for="username">Kullanıcı Adı</label>
+                    <input type="text" id="username" placeholder="Kullanıcı adınızı girin" autocomplete="username">
                 </div>
                 <div class="form-group">
-                    <input type="password" id="password" placeholder="Şifre" required>
+                    <label for="password">Şifre</label>
+                    <div class="password-input">
+                        <input type="password" id="password" placeholder="Şifrenizi girin" autocomplete="current-password">
+                        <button type="button" class="toggle-password" id="toggle-password">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group checkbox-group">
-                    <label>
+                    <label class="checkbox-label">
                         <input type="checkbox" id="remember-me">
+                        <span class="checkmark"></span>
                         <span>Beni Hatırla</span>
                     </label>
                 </div>
-                <button type="submit" class="btn-primary">Giriş Yap</button>
+                <button type="submit" class="btn-login">Giriş Yap</button>
             </form>
         </div>
     </div>
@@ -178,7 +257,7 @@
     </div>
 
     <!-- Floating Action Button -->
-    <button id="fab-btn" class="fab-button">+</button>
+    <button id="fab-btn" class="fab-button" style="display: none;">+</button>
 
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
@@ -277,6 +356,7 @@
     
     <!-- App Scripts -->
     <script src="js/firebase-config.js"></script>
+    <script src="js/security.js"></script>
     <script src="js/app.js"></script>
     <script src="js/features.js"></script>
     <script src="js/reports.js"></script>

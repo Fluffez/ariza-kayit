@@ -17,6 +17,25 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
+    // Dark mode'u yükle
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+    }
+    
+    // Dark mode toggle
+    const darkModeToggle = document.getElementById('admin-dark-mode-toggle');
+    if (darkModeToggle) {
+        darkModeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+            showToast(isDark ? 'Karanlık mod aktif' : 'Aydınlık mod aktif', 'success');
+        });
+    }
+    
     loadAllData();
     setupEventListeners();
 });
@@ -30,224 +49,203 @@ function loadAllData() {
     loadAyarlar();
 }
 
+// Sayfalama değişkenleri
+let currentPageMudurluk = 1;
+let currentPageCalisan = 1;
+let currentPageTeknisyen = 1;
+const itemsPerPage = 50;
+
 // Müdürlükleri yükle
 function loadMudurlukler() {
-    database.ref('mudurlukler').once('value', (snapshot) => {
-        if (!snapshot.exists()) {
-            // İlk yükleme - app.js'deki verileri Firebase'e aktar
-            const defaultMudurlukler = [
-                "NAR MASA",
-                "Ruhsat ve Denetim Müdürlüğü",
-                "Evrak Kayıt",
-                "Zabıta Müdürlüğü",
-                "Gelirler Müdürlüğü",
-                "Sağlık İşleri Müdürlüğü",
-                "İmar ve Şehircilik Müdürlüğü",
-                "Plan ve Proje Müdürlüğü",
-                "Bilgi İşlem Müdürlüğü",
-                "Fen İşleri Müdürlüğü",
-                "Mali Hizmetler Müdürlüğü",
-                "Yazı İşleri Müdürlüğü",
-                "Basın Yayın ve Halkla İlişkiler Müdürlüğü",
-                "Destek Hizmetler Müdürlüğü",
-                "İnsan Kaynakları ve Eğitim Müdürlüğü",
-                "Emlak ve İstimlak Müdürlüğü",
-                "Muhtarlık İşleri Müdürlüğü",
-                "İklim Değişikliği ve Sıfır Atık",
-                "Afet İşleri Müdürlüğü",
-                "Hukuk İşleri Müdürlüğü",
-                "Özel Kalem Müdürlüğü"
-            ];
-            
-            defaultMudurlukler.forEach(name => {
-                database.ref('mudurlukler').push({ name });
+    database.ref('mudurlukler').on('value', (snapshot) => {
+        mudurluklerData = [];
+        snapshot.forEach((child) => {
+            mudurluklerData.push({
+                id: child.key,
+                name: child.val().name || child.val()
             });
-            
-            showToast('Müdürlükler Firebase\'e aktarıldı', 'success');
-        }
-        
-        // Verileri dinle
-        database.ref('mudurlukler').on('value', (snapshot) => {
-            mudurluklerData = [];
-            snapshot.forEach((child) => {
-                mudurluklerData.push({
-                    id: child.key,
-                    name: child.val().name || child.val()
-                });
-            });
-            displayMudurlukler(mudurluklerData);
         });
+        console.log(`Toplam ${mudurluklerData.length} müdürlük yüklendi`);
+        currentPageMudurluk = 1;
+        displayMudurlukler();
     });
 }
 
-function displayMudurlukler(data) {
+function displayMudurlukler(dataToDisplay = null) {
     const list = document.getElementById('mudurluk-list');
+    const data = dataToDisplay || mudurluklerData;
+    
     if (data.length === 0) {
         list.innerHTML = '<p style="text-align: center; color: #718096;">Henüz müdürlük eklenmemiş</p>';
         return;
     }
     
-    list.innerHTML = data.map(item => `
-        <div class="item-card">
-            <div class="item-info">
-                <div class="item-name">${item.name}</div>
-            </div>
-            <div class="item-actions">
-                <button class="btn-icon btn-edit" onclick="editMudurluk('${item.id}', '${item.name}')">✏️ Düzenle</button>
-                <button class="btn-icon btn-delete" onclick="deleteMudurluk('${item.id}', '${item.name}')">🗑️ Sil</button>
-            </div>
+    // Sayfalama hesapla
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const startIndex = (currentPageMudurluk - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = data.slice(startIndex, endIndex);
+    
+    list.innerHTML = `
+        <div class="pagination-info">
+            Toplam ${data.length} kayıt - Sayfa ${currentPageMudurluk} / ${totalPages}
         </div>
-    `).join('');
+        ${pageData.map(item => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-name">${item.name}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-icon btn-edit" onclick="editMudurluk('${item.id}', '${item.name}')">✏️ Düzenle</button>
+                    <button class="btn-icon btn-delete" onclick="deleteMudurluk('${item.id}', '${item.name}')">🗑️ Sil</button>
+                </div>
+            </div>
+        `).join('')}
+        ${totalPages > 1 ? `
+            <div class="pagination">
+                <button onclick="changeMudurlukPage(${currentPageMudurluk - 1})" ${currentPageMudurluk === 1 ? 'disabled' : ''}>◀ Önceki</button>
+                <span>Sayfa ${currentPageMudurluk} / ${totalPages}</span>
+                <button onclick="changeMudurlukPage(${currentPageMudurluk + 1})" ${currentPageMudurluk === totalPages ? 'disabled' : ''}>Sonraki ▶</button>
+            </div>
+        ` : ''}
+    `;
 }
+
+window.changeMudurlukPage = function(page) {
+    const totalPages = Math.ceil(mudurluklerData.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPageMudurluk = page;
+        displayMudurlukler();
+    }
+};
 
 // Çalışanları yükle
 function loadCalisanlar() {
-    database.ref('calisanlar').once('value', (snapshot) => {
-        if (!snapshot.exists()) {
-            // İlk yükleme - TÜM çalışanları Firebase'e aktar
-            const defaultCalisanlar = [
-                "1001 - Suzan Ayaz", "1002 - Emine Aysel Atalık", "1003 - Deniz ERBİ", "1010 - Süleyman Çakan",
-                "1011 - Gökhan Gökçe", "1012 - Ebru İpek Akay", "1013 - Havvanur Tekin", "1014 - Ceren Oğuz",
-                "1015 - Berkay Nizam", "1020 - Halil İbrahim Karacin", "1021 - Olcay Altun", "1022 - Cem Şahin",
-                "1023 - İsmet Tolu", "1023 - Elif Küçüktekin", "1024 - Hidayet Ayverdi", "1024 - Büşra Selin Kepenek",
-                "1025 - Merve Kıvrak", "1025 - Merdan Akpınar", "1026 - Bayram Ünal", "1027 - Bilal Aktaş",
-                "1030 - Zeliha Yenicil", "1040 - Tarkan Gümüş", "1041 - Sebahattin Ekiz", "1042 - Tuna Özdemir",
-                "1043 - İlkay Bahşi", "1043 - Özbek Yılmaz", "1044 - Ali Çetin", "1046 - Tahsin Kayapınar",
-                "1060 - Ramazan Yanar", "1061 - İrfan Kaşlı", "1062 - Doğan Özen", "1062 - Umut Ördem",
-                "1063 - Durmuş Gürkan", "1063 - Oğuzhan Fırat", "1064 - Osman Yanar", "1064 - Hasibe Tosun",
-                "1065 - Recai Kara", "1065 - Bekir Arıca", "1066 - Abdurrahman Dal", "1066 - Nurgül Günay",
-                "1067 - Mehmet Tatlı", "1070 - Fatmana Tıraş Türker", "1071 - Fatma İnce", "1072 - Ahmet Altıner",
-                "1073 - Süleyman Serhat Acar", "1074 - Serpil Üneş", "1075 - Merve Balcak",
-                "1100 - Sevgi Uzunoğlu", "1101 - Hayrettin Bahşi", "1102 - Sezen Küçükbaşkan", "1103 - Baki Uzunoğlu",
-                "1104 - Fulya Barut", "1105 - Hale Fırat", "1106 - Enver Altundağ", "1107 - Mehmet Solaklar",
-                "1108 - Hayriye Dölen Sönmez", "1109 - Hacer Büyükşahin", "1110 - Nurten Yağan", "1111 - Ümit Küçükçakal",
-                "1112 - Ayşe Böcek Gökçe", "1113 - Helin Şahika Barut", "1114 - İbrahim Akan", "1115 - Salih Saçkan",
-                "1116 - Serap Erkuş", "1117 - Seher Ataseven", "1118 - İsmail Kalkay", "1119 - Bayram Kalın",
-                "1120 - Mehmet Ali Gökmen", "1121 - Mustafa Tatlı", "1130 - Meral Tekşan", "1140 - Mustafa Yıldırım",
-                "1132 - Hakan Çiloğlu", "1133 - Rabia Cebeci", "1134 - Fatma Öztürk", "1135 - Süleyman Dukluk",
-                "1136 - Hanife Özkan", "1137 - Özlem Görücü", "1138 - Emel Parlak", "1150 - Adile Cebeci",
-                "1151 - Hüseyin Acay", "1152 - Selman Karadağ", "1153 - Rauf Kurt", "1154 - Can Gürses",
-                "1155 - Ahmet Özkan", "1170 - Ezgi Nur Akça", "1171 - Harun Erbi", "1172 - Erdi Bahşi",
-                "1173 - Aydın Kıvrım", "1173 - Eray Dinsel", "1174 - Halil Kolak", "1174 - Furkan Akın",
-                "1175 - Alparslan Şahin", "1176 - Melda Sapmaz", "1177 - Azize Zenkin", "1178 - Pınar Sedef Ünal",
-                "1179 - Yasin Tekeli", "1180 - Halil Çelik", "1200 - Cansel Güneş", "1201 - Rabia Uysal",
-                "1202 - Adem Erkuş", "1203 - Hayal Yurtseven", "1204 - Muzaffer Yurtseven", "1205 - Ayşe Kübra Yüztaş",
-                "1206 - Binnur Uygur", "1207 - Tuğba Erdil", "1208 - Arif Bahşi", "1209 - Ummani Türkmenoğlu",
-                "1210 - Emre Alkan", "1211 - Havva Keser", "1212 - Ali Şekerli", "1220 - Mustafa Aldemir",
-                "1221 - Nadire Özdemir", "1222 - Mehmet Ali Tunç", "1223 - Erçin Ulukaya", "1224 - Çiğdem Ayhan Tosun",
-                "1230 - Figen Yurtseven", "1231 - Eylem İmir", "1232 - Suna Uysal", "1233 - Ahmet Karbuz",
-                "1234 - Arif Tom", "1235 - Zeynep Doğan", "1240 - Erkan Şimşek", "1241 - Mehmet Kara",
-                "1242 - Hatice Yıldıran", "1243 - Selçuk Öcü", "1244 - Melek İnce", "1245 - Oğuz Taşar",
-                "1246 - Harun Önkal", "1247 - Esma İnce", "1248 - Gülfem Durak", "1260 - Özlem Akın",
-                "1261 - Neslihan Baygül", "1262 - Derya Akın", "1262 - Ramazan Küçükbaşkan", "1263 - Mürüvvet Yılmaz",
-                "1264 - Eda Deke", "1264 - Murat Çankaya", "1265 - Murat Yaldız", "1265 - İsmail Yıldız",
-                "1270 - Hüseyin Sivri", "1271 - Arif Çini", "1272 - Yalçın Kaya", "1273 - Ramazan Boz",
-                "1280 - Kadir Çıra", "1281 - Sevgi Çiçekdağı", "1282 - Gülsüm Karataş", "1290 - Alper Yerli",
-                "1291 - Zafer Koyuncu", "1305 - Hüsnü Şahin", "1306 - Dilek Küçükbaşkan", "1310 - Emre İpek",
-                "1311 - Kübra Tat", "1315 - İbrahim Tekşan", "1320 - Mehmet Akif Karabay", "1321 - Temel Yetim",
-                "1330 - Ezgi Çot", "1340 - Ramazan Dönmez", "1341 - Rahime Deke", "1342 - Ümit Tutar",
-                "1343 - Abdullah Gümüş", "1350 - Esra Çil", "1352 - Ömer Kıvrak", "1355 - Emine Alkan",
-                "1357 - Hakan Bilgi", "1360 - Hanife Acar", "1362 - Cavit Aktar", "1365 - Merve Keklik",
-                "1366 - Mehtap Çelik", "1367 - Barış Yönter", "1368 - Ali İhsan Topçu", "1400 - Nilüfer Öztürk",
-                "1402 - Raziye Şimşek", "1403 - Ömer Dereli"
-            ];
-            
-            console.log(`${defaultCalisanlar.length} çalışan Firebase'e aktarılıyor...`);
-            
-            defaultCalisanlar.forEach(name => {
-                database.ref('calisanlar').push({ name });
+    database.ref('calisanlar').on('value', (snapshot) => {
+        calisanlarData = [];
+        snapshot.forEach((child) => {
+            calisanlarData.push({
+                id: child.key,
+                name: child.val().name || child.val()
             });
-            
-            showToast(`${defaultCalisanlar.length} çalışan Firebase'e aktarıldı`, 'success');
-        }
-        
-        // Verileri dinle
-        database.ref('calisanlar').on('value', (snapshot) => {
-            calisanlarData = [];
-            snapshot.forEach((child) => {
-                calisanlarData.push({
-                    id: child.key,
-                    name: child.val().name || child.val()
-                });
-            });
-            displayCalisanlar(calisanlarData);
         });
+        console.log(`Toplam ${calisanlarData.length} çalışan yüklendi`);
+        currentPageCalisan = 1;
+        displayCalisanlar();
     });
 }
 
-function displayCalisanlar(data) {
+function displayCalisanlar(dataToDisplay = null) {
     const list = document.getElementById('calisan-list');
+    const data = dataToDisplay || calisanlarData;
+    
     if (data.length === 0) {
         list.innerHTML = '<p style="text-align: center; color: #718096;">Henüz çalışan eklenmemiş</p>';
         return;
     }
     
-    list.innerHTML = data.map(item => `
-        <div class="item-card">
-            <div class="item-info">
-                <div class="item-name">${item.name}</div>
-            </div>
-            <div class="item-actions">
-                <button class="btn-icon btn-edit" onclick="editCalisan('${item.id}', '${item.name}')">✏️ Düzenle</button>
-                <button class="btn-icon btn-delete" onclick="deleteCalisan('${item.id}', '${item.name}')">🗑️ Sil</button>
-            </div>
+    // Sayfalama hesapla
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const startIndex = (currentPageCalisan - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = data.slice(startIndex, endIndex);
+    
+    list.innerHTML = `
+        <div class="pagination-info">
+            Toplam ${data.length} kayıt - Sayfa ${currentPageCalisan} / ${totalPages}
         </div>
-    `).join('');
+        ${pageData.map(item => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-name">${item.name}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-icon btn-edit" onclick="editCalisan('${item.id}', '${item.name}')">✏️ Düzenle</button>
+                    <button class="btn-icon btn-delete" onclick="deleteCalisan('${item.id}', '${item.name}')">🗑️ Sil</button>
+                </div>
+            </div>
+        `).join('')}
+        ${totalPages > 1 ? `
+            <div class="pagination">
+                <button onclick="changeCalisanPage(${currentPageCalisan - 1})" ${currentPageCalisan === 1 ? 'disabled' : ''}>◀ Önceki</button>
+                <span>Sayfa ${currentPageCalisan} / ${totalPages}</span>
+                <button onclick="changeCalisanPage(${currentPageCalisan + 1})" ${currentPageCalisan === totalPages ? 'disabled' : ''}>Sonraki ▶</button>
+            </div>
+        ` : ''}
+    `;
 }
+
+window.changeCalisanPage = function(page) {
+    const totalPages = Math.ceil(calisanlarData.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPageCalisan = page;
+        displayCalisanlar();
+    }
+};
 
 // Teknisyenleri yükle
 function loadTeknisyenler() {
-    database.ref('teknisyenler').once('value', (snapshot) => {
-        if (!snapshot.exists()) {
-            // İlk yükleme - varsayılan teknisyenler
-            const defaultTeknisyenler = [
-                "Ahmet Yılmaz",
-                "Mehmet Demir",
-                "Ayşe Kaya",
-                "Fatma Şahin",
-                "Ali Çelik"
-            ];
-            
-            defaultTeknisyenler.forEach(name => {
-                database.ref('teknisyenler').push({ name });
+    database.ref('teknisyenler').on('value', (snapshot) => {
+        teknisyenlerData = [];
+        snapshot.forEach((child) => {
+            teknisyenlerData.push({
+                id: child.key,
+                name: child.val().name || child.val()
             });
-            
-            showToast('Teknisyenler Firebase\'e aktarıldı', 'success');
-        }
-        
-        // Verileri dinle
-        database.ref('teknisyenler').on('value', (snapshot) => {
-            teknisyenlerData = [];
-            snapshot.forEach((child) => {
-                teknisyenlerData.push({
-                    id: child.key,
-                    name: child.val().name || child.val()
-                });
-            });
-            displayTeknisyenler(teknisyenlerData);
         });
+        console.log(`Toplam ${teknisyenlerData.length} teknisyen yüklendi`);
+        currentPageTeknisyen = 1;
+        displayTeknisyenler();
     });
 }
 
-function displayTeknisyenler(data) {
+function displayTeknisyenler(dataToDisplay = null) {
     const list = document.getElementById('teknisyen-list');
+    const data = dataToDisplay || teknisyenlerData;
+    
     if (data.length === 0) {
         list.innerHTML = '<p style="text-align: center; color: #718096;">Henüz teknisyen eklenmemiş</p>';
         return;
     }
     
-    list.innerHTML = data.map(item => `
-        <div class="item-card">
-            <div class="item-info">
-                <div class="item-name">${item.name}</div>
-            </div>
-            <div class="item-actions">
-                <button class="btn-icon btn-edit" onclick="editTeknisyen('${item.id}', '${item.name}')">✏️ Düzenle</button>
-                <button class="btn-icon btn-delete" onclick="deleteTeknisyen('${item.id}', '${item.name}')">🗑️ Sil</button>
-            </div>
+    // Sayfalama hesapla
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const startIndex = (currentPageTeknisyen - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = data.slice(startIndex, endIndex);
+    
+    list.innerHTML = `
+        <div class="pagination-info">
+            Toplam ${data.length} kayıt - Sayfa ${currentPageTeknisyen} / ${totalPages}
         </div>
-    `).join('');
+        ${pageData.map(item => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-name">${item.name}</div>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-icon btn-edit" onclick="editTeknisyen('${item.id}', '${item.name}')">✏️ Düzenle</button>
+                    <button class="btn-icon btn-delete" onclick="deleteTeknisyen('${item.id}', '${item.name}')">🗑️ Sil</button>
+                </div>
+            </div>
+        `).join('')}
+        ${totalPages > 1 ? `
+            <div class="pagination">
+                <button onclick="changeTeknisyenPage(${currentPageTeknisyen - 1})" ${currentPageTeknisyen === 1 ? 'disabled' : ''}>◀ Önceki</button>
+                <span>Sayfa ${currentPageTeknisyen} / ${totalPages}</span>
+                <button onclick="changeTeknisyenPage(${currentPageTeknisyen + 1})" ${currentPageTeknisyen === totalPages ? 'disabled' : ''}>Sonraki ▶</button>
+            </div>
+        ` : ''}
+    `;
 }
+
+window.changeTeknisyenPage = function(page) {
+    const totalPages = Math.ceil(teknisyenlerData.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPageTeknisyen = page;
+        displayTeknisyenler();
+    }
+};
 
 // Kullanıcıları yükle
 function loadKullanicilar() {
@@ -323,24 +321,45 @@ function setupEventListeners() {
     
     // Arama
     document.getElementById('mudurluk-search')?.addEventListener('input', (e) => {
-        const filtered = mudurluklerData.filter(m => 
-            m.name.toLowerCase().includes(e.target.value.toLowerCase())
-        );
-        displayMudurlukler(filtered);
+        const searchValue = e.target.value.toLowerCase().trim();
+        if (searchValue === '') {
+            currentPageMudurluk = 1;
+            displayMudurlukler();
+        } else {
+            const filtered = mudurluklerData.filter(m => 
+                m.name.toLowerCase().includes(searchValue)
+            );
+            currentPageMudurluk = 1;
+            displayMudurlukler(filtered);
+        }
     });
     
     document.getElementById('calisan-search')?.addEventListener('input', (e) => {
-        const filtered = calisanlarData.filter(c => 
-            c.name.toLowerCase().includes(e.target.value.toLowerCase())
-        );
-        displayCalisanlar(filtered);
+        const searchValue = e.target.value.toLowerCase().trim();
+        if (searchValue === '') {
+            currentPageCalisan = 1;
+            displayCalisanlar();
+        } else {
+            const filtered = calisanlarData.filter(c => 
+                c.name.toLowerCase().includes(searchValue)
+            );
+            currentPageCalisan = 1;
+            displayCalisanlar(filtered);
+        }
     });
     
     document.getElementById('teknisyen-search')?.addEventListener('input', (e) => {
-        const filtered = teknisyenlerData.filter(t => 
-            t.name.toLowerCase().includes(e.target.value.toLowerCase())
-        );
-        displayTeknisyenler(filtered);
+        const searchValue = e.target.value.toLowerCase().trim();
+        if (searchValue === '') {
+            currentPageTeknisyen = 1;
+            displayTeknisyenler();
+        } else {
+            const filtered = teknisyenlerData.filter(t => 
+                t.name.toLowerCase().includes(searchValue)
+            );
+            currentPageTeknisyen = 1;
+            displayTeknisyenler(filtered);
+        }
     });
     
     // Yeni ekleme butonları

@@ -1,23 +1,47 @@
 // Kullanıcı Hataları ve Edge Case Düzeltmeleri
 
-// 1. Firebase bağlantı hatası kontrolü
-window.addEventListener('DOMContentLoaded', () => {
-    // Firebase yükleme kontrolü
-    setTimeout(() => {
-        if (typeof database === 'undefined') {
-            showToast('Firebase bağlantısı kurulamadı. Lütfen sayfayı yenileyin.', 'error');
-            console.error('Firebase yüklenmedi!');
+// 1. Firebase bağlantı hatası kontrolü - Sadeleştirilmiş
+let firebaseCheckAttempts = 0;
+const maxFirebaseCheckAttempts = 3;
+let firebaseCheckCompleted = false;
+
+function checkFirebaseConnection() {
+    // Eğer kontrol zaten tamamlandıysa tekrar yapma
+    if (firebaseCheckCompleted) return;
+    
+    firebaseCheckAttempts++;
+    
+    if (typeof database === 'undefined' || typeof firebase === 'undefined') {
+        if (firebaseCheckAttempts < maxFirebaseCheckAttempts) {
+            console.log(`Firebase kontrol ediliyor... Deneme ${firebaseCheckAttempts}/${maxFirebaseCheckAttempts}`);
+            setTimeout(checkFirebaseConnection, 2000);
+        } else {
+            console.error('Firebase yüklenemedi!');
+            firebaseCheckCompleted = true;
         }
-    }, 3000);
+    } else {
+        console.log('Firebase başarıyla yüklendi');
+        firebaseCheckCompleted = true;
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(checkFirebaseConnection, 1000);
 });
 
-// 2. İnternet bağlantısı kontrolü
+// 2. İnternet bağlantısı kontrolü - Sadece gerçekten kesildiğinde uyar
+let wasOffline = false;
+
 window.addEventListener('online', () => {
-    showToast('İnternet bağlantısı yeniden kuruldu', 'success');
+    if (wasOffline) {
+        showToast('İnternet bağlantısı yeniden kuruldu', 'success');
+        wasOffline = false;
+    }
 });
 
 window.addEventListener('offline', () => {
-    showToast('İnternet bağlantısı kesildi! Veriler kaydedilmeyebilir.', 'error');
+    wasOffline = true;
+    showToast('İnternet bağlantısı kesildi!', 'error');
 });
 
 // 3. Boş veri kontrolü - arizalariGoster fonksiyonunu güçlendir
@@ -183,21 +207,8 @@ function isEmptyOrWhitespace(str) {
     return !str || str.trim().length === 0;
 }
 
-// 15. Sayfa görünürlük değişimi - Firebase bağlantısını yenile
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && typeof database !== 'undefined') {
-        console.log('Sayfa aktif, bağlantı kontrol ediliyor...');
-        // Firebase bağlantısını test et
-        database.ref('.info/connected').once('value', (snapshot) => {
-            if (snapshot.val() === true) {
-                console.log('Firebase bağlantısı aktif');
-            } else {
-                console.warn('Firebase bağlantısı yok');
-                showToast('Bağlantı sorunu olabilir', 'warning');
-            }
-        });
-    }
-});
+// 15. Sayfa görünürlük değişimi - KALDIRILDI (Gereksiz uyarı veriyordu)
+// Sekme değiştirince Firebase bağlantı kontrolü yapmıyoruz artık
 
 // 16. Console hataları için global error handler
 window.addEventListener('error', (e) => {

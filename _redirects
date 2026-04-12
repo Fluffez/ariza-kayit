@@ -1,0 +1,10 @@
+# Netlify Redirects
+
+# Admin paneli
+/admin  /admin.html  200
+
+# Ana sayfa
+/       /index.html  200
+
+# 404 - Tüm diğer istekler ana sayfaya
+/*      /index.html  404

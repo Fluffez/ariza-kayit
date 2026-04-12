@@ -224,13 +224,7 @@ function exportToPDF() {
 // Dark Mode
 const darkModeToggle = document.getElementById('dark-mode-toggle');
 if (darkModeToggle) {
-    // Sayfa yüklendiğinde dark mode durumunu kontrol et
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-        darkModeToggle.textContent = '☀️';
-    }
-    
+    // Dark mode toggle - showMainApp'te yükleniyor
     darkModeToggle.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
         const isDark = document.body.classList.contains('dark-mode');

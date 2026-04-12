@@ -50,26 +50,179 @@ window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('admin-link').style.display = 'inline-block';
         }
     }
+    
+    // Maskot animasyonu
+    const passwordInput = document.getElementById('password');
+    const usernameInput = document.getElementById('username');
+    const mascot = document.getElementById('mascot');
+    const leftEyeNormal = document.getElementById('left-eye-normal');
+    const rightEyeNormal = document.getElementById('right-eye-normal');
+    const leftEyeClosed = document.getElementById('left-eye-closed');
+    const rightEyeClosed = document.getElementById('right-eye-closed');
+    
+    let eyeTimeouts = [];
+    
+    function clearEyeTimeouts() {
+        eyeTimeouts.forEach(timeout => clearTimeout(timeout));
+        eyeTimeouts = [];
+    }
+    
+    // Başlangıçta gözleri ayarla
+    if (leftEyeNormal && rightEyeNormal && leftEyeClosed && rightEyeClosed) {
+        leftEyeNormal.style.display = 'block';
+        rightEyeNormal.style.display = 'block';
+        leftEyeNormal.style.opacity = '1';
+        rightEyeNormal.style.opacity = '1';
+        leftEyeClosed.style.display = 'none';
+        rightEyeClosed.style.display = 'none';
+    }
+    
+    if (passwordInput && mascot) {
+        // Kullanıcı adı input'una focus olunca - gözleri aç
+        usernameInput?.addEventListener('focus', () => {
+            clearEyeTimeouts();
+            
+            // Elleri geri çek
+            mascot.classList.remove('covering');
+            
+            // Gözleri aç
+            eyeTimeouts.push(setTimeout(() => {
+                if (leftEyeClosed && rightEyeClosed && leftEyeNormal && rightEyeNormal) {
+                    leftEyeClosed.style.display = 'none';
+                    rightEyeClosed.style.display = 'none';
+                    leftEyeNormal.style.display = 'block';
+                    rightEyeNormal.style.display = 'block';
+                    leftEyeNormal.style.opacity = '1';
+                    rightEyeNormal.style.opacity = '1';
+                }
+            }, 200));
+        });
+        
+        // Şifre kutusuna focus olunca
+        passwordInput.addEventListener('focus', () => {
+            clearEyeTimeouts();
+            mascot.classList.add('covering');
+            
+            // Gözleri kapat (eller hareket ederken)
+            eyeTimeouts.push(setTimeout(() => {
+                if (leftEyeNormal && rightEyeNormal) {
+                    leftEyeNormal.style.opacity = '0';
+                    rightEyeNormal.style.opacity = '0';
+                }
+            }, 200));
+            
+            eyeTimeouts.push(setTimeout(() => {
+                if (leftEyeNormal && rightEyeNormal && leftEyeClosed && rightEyeClosed) {
+                    leftEyeNormal.style.display = 'none';
+                    rightEyeNormal.style.display = 'none';
+                    leftEyeClosed.style.display = 'block';
+                    rightEyeClosed.style.display = 'block';
+                    leftEyeClosed.style.opacity = '1';
+                    rightEyeClosed.style.opacity = '1';
+                }
+            }, 400));
+        });
+        
+        // Şifre kutusundan çıkınca
+        passwordInput.addEventListener('blur', () => {
+            clearEyeTimeouts();
+            
+            // Elleri hemen geri çek
+            mascot.classList.remove('covering');
+            
+            // Gözleri aç
+            eyeTimeouts.push(setTimeout(() => {
+                if (leftEyeClosed && rightEyeClosed && leftEyeNormal && rightEyeNormal) {
+                    leftEyeClosed.style.display = 'none';
+                    rightEyeClosed.style.display = 'none';
+                    leftEyeNormal.style.display = 'block';
+                    rightEyeNormal.style.display = 'block';
+                    leftEyeNormal.style.opacity = '1';
+                    rightEyeNormal.style.opacity = '1';
+                }
+            }, 200));
+        });
+    }
+    
+    // Şifre göster/gizle
+    const togglePassword = document.getElementById('toggle-password');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            
+            // İkon değiştir
+            const icon = togglePassword.querySelector('.eye-icon');
+            if (type === 'text') {
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            } else {
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            }
+        });
+    }
 });
 
 // Login form
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
     const rememberMe = document.getElementById('remember-me').checked;
     
+    // Güvenlik kontrolü - Engellenen kullanıcı mı?
+    if (typeof window.securityUtils !== 'undefined') {
+        const isBlocked = await window.securityUtils.failedLoginTracker.isBlocked();
+        if (isBlocked) {
+            showToast('Çok fazla başarısız deneme. Lütfen daha sonra tekrar deneyin.', 'error');
+            return;
+        }
+
+        // Rate limiting kontrolü
+        const fingerprint = await window.securityUtils.failedLoginTracker.generateFingerprint();
+        const rateCheck = window.securityUtils.loginLimiter.checkLimit(fingerprint);
+        
+        if (!rateCheck.allowed) {
+            showToast(`Çok fazla deneme yaptınız. ${rateCheck.waitTime} saniye sonra tekrar deneyin.`, 'error');
+            return;
+        }
+    }
+    
+    // Input validasyonu
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    
     // Boş kontrol
-    if (!username || !password) {
-        showToast('Kullanıcı adı ve şifre boş olamaz', 'error');
+    if (!username) {
+        usernameInput.setCustomValidity('Kullanıcı adı boş olamaz');
+        usernameInput.reportValidity();
         return;
+    } else {
+        usernameInput.setCustomValidity('');
+    }
+    
+    if (!password) {
+        passwordInput.setCustomValidity('Şifre boş olamaz');
+        passwordInput.reportValidity();
+        return;
+    } else {
+        passwordInput.setCustomValidity('');
     }
     
     // Uzunluk kontrolü
     if (username.length > 50 || password.length > 50) {
         showToast('Kullanıcı adı veya şifre çok uzun', 'error');
         return;
+    }
+
+    // Güvenlik validasyonu
+    if (typeof window.securityUtils !== 'undefined') {
+        const usernameValidation = window.securityUtils.validateInput(username, 'username', 50);
+        if (!usernameValidation.valid) {
+            showToast(usernameValidation.error, 'error');
+            return;
+        }
     }
     
     // Admin kontrolü
@@ -82,6 +235,13 @@ loginForm.addEventListener('submit', (e) => {
             localStorage.removeItem('isAdmin');
         }
         localStorage.setItem('isAdmin', 'true');
+        
+        // Başarılı giriş - rate limiter'ı sıfırla
+        if (typeof window.securityUtils !== 'undefined') {
+            const fingerprint = await window.securityUtils.failedLoginTracker.generateFingerprint();
+            window.securityUtils.loginLimiter.reset(fingerprint);
+        }
+        
         showMainApp();
         document.getElementById('admin-link').style.display = 'inline-block';
         showToast('Admin olarak giriş yapıldı', 'success');
@@ -92,16 +252,50 @@ loginForm.addEventListener('submit', (e) => {
             localStorage.removeItem('rememberedUser');
         }
         localStorage.removeItem('isAdmin');
+        
+        // Başarılı giriş - rate limiter'ı sıfırla
+        if (typeof window.securityUtils !== 'undefined') {
+            const fingerprint = await window.securityUtils.failedLoginTracker.generateFingerprint();
+            window.securityUtils.loginLimiter.reset(fingerprint);
+        }
+        
         showMainApp();
         showToast('Giriş başarılı', 'success');
     } else {
-        showToast('Kullanıcı adı veya şifre hatalı!', 'error');
+        // Başarısız giriş - kaydet
+        if (typeof window.securityUtils !== 'undefined') {
+            const result = await window.securityUtils.failedLoginTracker.logFailedAttempt(username, password);
+            
+            if (result.blocked) {
+                showToast('Çok fazla başarısız deneme. Hesabınız geçici olarak engellendi.', 'error');
+            } else if (result.remaining !== undefined) {
+                showToast(`Kullanıcı adı veya şifre hatalı! ${result.remaining} deneme hakkınız kaldı.`, 'error');
+            } else {
+                showToast('Kullanıcı adı veya şifre hatalı!', 'error');
+            }
+        } else {
+            showToast('Kullanıcı adı veya şifre hatalı!', 'error');
+        }
+        
+        // Input'ları temizle
+        passwordInput.value = '';
+        passwordInput.focus();
+        
         // Güvenlik için biraz beklet
         loginForm.querySelector('button').disabled = true;
         setTimeout(() => {
             loginForm.querySelector('button').disabled = false;
-        }, 1000);
+        }, 2000); // 2 saniye bekleme süresi
     }
+});
+
+// Input'lara yazarken custom validation'ı temizle
+document.getElementById('username')?.addEventListener('input', function() {
+    this.setCustomValidity('');
+});
+
+document.getElementById('password')?.addEventListener('input', function() {
+    this.setCustomValidity('');
 });
 
 // Logout
@@ -120,13 +314,43 @@ function showMainApp() {
     mainApp.style.display = 'block';
     fabBtn.style.display = 'block';
     
-    // Firebase kontrolü
-    if (typeof database === 'undefined') {
-        showToast('Firebase bağlantısı kurulamadı. Lütfen sayfayı yenileyin.', 'error');
-        return;
+    // Dark mode'u temizle - her zaman aydınlık modda başlasın
+    document.body.classList.remove('dark-mode');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    if (darkModeToggle) {
+        darkModeToggle.textContent = '🌙';
     }
     
-    arizalariYukle();
+    // Kullanıcı tercihini yükle
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        if (darkModeToggle) {
+            darkModeToggle.textContent = '☀️';
+        }
+    }
+    
+    // Firebase kontrolü - İyileştirilmiş
+    if (typeof database === 'undefined') {
+        console.warn('Firebase henüz yüklenmedi, bekleniyor...');
+        let retryCount = 0;
+        const maxRetries = 5;
+        
+        const checkFirebase = setInterval(() => {
+            retryCount++;
+            if (typeof database !== 'undefined') {
+                console.log('Firebase yüklendi, veriler çekiliyor...');
+                clearInterval(checkFirebase);
+                arizalariYukle();
+            } else if (retryCount >= maxRetries) {
+                console.error('Firebase yüklenemedi');
+                clearInterval(checkFirebase);
+                showToast('Veritabanı bağlantısı kurulamadı. Lütfen sayfayı yenileyin.', 'error');
+            }
+        }, 1000);
+    } else {
+        arizalariYukle();
+    }
 }
 
 // DOM elementleri
@@ -547,9 +771,9 @@ function arizalariGoster(arizalar) {
                     </div>
                     <div class="ariza-info">
                         <div class="info-item"><strong>Müdürlük:</strong> ${sanitizeHTML(ariza.birim || 'Belirtilmemiş')}</div>
+                        <div class="info-item"><strong>Talep Eden:</strong> ${sanitizeHTML(ariza.talepEden || 'Belirtilmemiş')}</div>
                         <div class="info-item"><strong>Cihaz:</strong> ${sanitizeHTML(ariza.cihazTuru || 'Belirtilmemiş')}</div>
                         <div class="info-item"><strong>Arıza Türü:</strong> ${sanitizeHTML(ariza.arizaTuru || 'Belirtilmemiş')}</div>
-                        <div class="info-item"><strong>Talep Eden:</strong> ${sanitizeHTML(ariza.talepEden || 'Belirtilmemiş')}</div>
                         <div class="info-item"><strong>Tarih:</strong> ${sanitizeHTML(ariza.tarih || safeDateFormat(ariza.timestamp))}</div>
                     </div>
                     ${ariza.aciklama ? `<div class="ariza-aciklama"><strong>Arıza:</strong> ${sanitizeHTML(ariza.aciklama)}</div>` : ''}

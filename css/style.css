@@ -15,8 +15,11 @@ body.dark-mode {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
 
+body.dark-mode .main-app {
+    background: transparent;
+}
+
 body.dark-mode .login-box,
-body.dark-mode header,
 body.dark-mode .filter-section,
 body.dark-mode .ariza-item,
 body.dark-mode .modal-content,
@@ -27,6 +30,18 @@ body.dark-mode .stat-card {
     color: #e2e8f0;
 }
 
+body.dark-mode header {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+}
+
+body.dark-mode header h1 {
+    color: #ffffff;
+}
+
+body.dark-mode header h2 {
+    color: #a0aec0;
+}
+
 body.dark-mode .login-header h1,
 body.dark-mode header h1,
 body.dark-mode .modal-header h3,
@@ -34,6 +49,10 @@ body.dark-mode .confirm-box h3,
 body.dark-mode .empty-state h3,
 body.dark-mode .info-item strong {
     color: #e2e8f0;
+}
+
+body.dark-mode header h2 {
+    color: #718096;
 }
 
 body.dark-mode .form-group input,
@@ -54,59 +73,262 @@ body.dark-mode .checkbox-group label {
     color: #cbd5e0;
 }
 
-/* Login Screen */
+/* Login Screen - Modern Light Theme */
 .login-screen {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .login-box {
-    background: white;
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    max-width: 400px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    padding: 50px 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    max-width: 450px;
     width: 100%;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-avatar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.avatar-circle {
+    width: 120px;
+    height: 120px;
+    background: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.mascot-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Maskot elleri animasyonu */
+.hand {
+    transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform-origin: center;
+    will-change: transform;
+}
+
+/* Eller gözlere giderken */
+#mascot.covering #left-hand {
+    transform: translate(35px, -50px);
+}
+
+#mascot.covering #right-hand {
+    transform: translate(-35px, -50px);
+}
+
+/* Göz geçişleri */
+#left-eye-normal, #right-eye-normal, #left-eye-closed, #right-eye-closed {
+    transition: opacity 0.2s ease-in-out;
 }
 
 .login-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 35px;
 }
 
 .login-header h1 {
-    color: #2d3748;
+    color: #ffffff;
     font-size: 1.8em;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.login-header h2 {
-    color: #667eea;
-    font-size: 1em;
+.login-header p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95em;
+    font-weight: 400;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 14px;
+    margin-bottom: 8px;
     font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    color: #2d3748;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.form-group input::placeholder {
+    color: #a0aec0;
+}
+
+.password-input {
+    position: relative;
+}
+
+.password-input input {
+    padding-right: 50px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+
+.toggle-password:hover {
+    opacity: 0.7;
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+    color: #888;
 }
 
 .checkbox-group {
-    display: flex;
-    align-items: center;
+    margin-bottom: 25px;
 }
 
-.checkbox-group label {
+.checkbox-label {
     display: flex;
     align-items: center;
     cursor: pointer;
     font-size: 14px;
-    color: #4a5568;
+    color: rgba(255, 255, 255, 0.95);
+    position: relative;
+    padding-left: 30px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.checkbox-group input[type="checkbox"] {
-    margin-right: 8px;
-    width: 18px;
-    height: 18px;
+.checkbox-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
     cursor: pointer;
+    width: 0;
+    height: 0;
+}
+
+.checkmark {
+    position: absolute;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.checkbox-label:hover .checkmark {
+    border-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.checkbox-label input:checked ~ .checkmark {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-label input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.btn-login:active {
+    transform: translateY(0);
 }
 
 /* Main App */
@@ -120,11 +342,77 @@ body.dark-mode .checkbox-group label {
 }
 
 header {
-    background: white;
+    background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     margin-bottom: 20px;
+}
+
+body:not(.dark-mode) header {
+    background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode header {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    color: #ffffff;
+    font-size: 1.5em;
+    margin: 0 0 5px 0;
+}
+
+header h2 {
+    color: #888;
+    font-size: 0.9em;
+    font-weight: 400;
+    margin: 0;
+}
+
+#admin-link {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+    margin-right: 10px;
+}
+
+#admin-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+#logout-btn {
+    padding: 10px 20px;
+    background: #fc8181;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#logout-btn:hover {
+    background: #f56565;
+    transform: translateY(-2px);
 }
 
 /* İstatistikler */
@@ -148,6 +436,34 @@ header {
 
 .stat-card:hover {
     transform: translateY(-2px);
+}
+
+body.dark-mode .stat-card {
+    background: #2d3748;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+    font-size: 2em;
+}
+
+.stat-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #667eea;
+}
+
+body.dark-mode .stat-value {
+    color: #7c8ef7;
+}
+
+.stat-label {
+    color: #718096;
+    font-size: 0.9em;
+}
+
+body.dark-mode .stat-label {
+    color: #a0aec0;
 }
 
 .stat-icon {
@@ -386,6 +702,11 @@ header h2 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+body.dark-mode .filter-section {
+    background: #2d3748;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
 .filter-group {
     display: flex;
     gap: 10px;
@@ -401,11 +722,23 @@ header h2 {
     font-size: 14px;
 }
 
+body.dark-mode .filter-group input[type="text"] {
+    background: #1a202c;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
 .filter-group select {
     padding: 8px 12px;
     border: 2px solid #e2e8f0;
     border-radius: 6px;
     font-size: 14px;
+}
+
+body.dark-mode .filter-group select {
+    background: #1a202c;
+    border-color: #4a5568;
+    color: #e2e8f0;
 }
 
 .btn-export {
@@ -425,6 +758,17 @@ header h2 {
     color: white;
 }
 
+body.dark-mode .btn-export {
+    background: #2d3748;
+    border-color: #7c8ef7;
+    color: #7c8ef7;
+}
+
+body.dark-mode .btn-export:hover {
+    background: #7c8ef7;
+    color: white;
+}
+
 .ariza-listesi {
     display: grid;
     gap: 15px;
@@ -437,6 +781,12 @@ header h2 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-left: 4px solid #667eea;
     transition: transform 0.2s, box-shadow 0.2s;
+}
+
+body.dark-mode .ariza-item {
+    background: #2d3748;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-left-color: #7c8ef7;
 }
 
 .ariza-item:hover {
@@ -584,6 +934,11 @@ header h2 {
     border-left: 4px solid #48bb78;
 }
 
+body.dark-mode .toast {
+    background: #2d3748 !important;
+    border: 1px solid #4a5568;
+}
+
 .toast.show {
     display: flex;
 }
@@ -608,6 +963,10 @@ header h2 {
     flex: 1;
     color: #2d3748;
     font-weight: 500;
+}
+
+body.dark-mode .toast-message {
+    color: #ffffff !important;
 }
 
 @keyframes slideIn {
