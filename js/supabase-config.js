@@ -214,6 +214,70 @@ const db = {
         return data || [];
     },
 
+    // Supabase Auth - Kullanıcı Yönetimi
+    async signUp(email, password, metadata = {}) {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: metadata
+            }
+        });
+        
+        if (error) throw error;
+        return data;
+    },
+
+    async signIn(email, password) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+        
+        if (error) throw error;
+        return data;
+    },
+
+    async signOut() {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+    },
+
+    async getCurrentUser() {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        return user;
+    },
+
+    async updateUserMetadata(metadata) {
+        const { data, error } = await supabase.auth.updateUser({
+            data: metadata
+        });
+        
+        if (error) throw error;
+        return data;
+    },
+
+    async resetPassword(email) {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        return data;
+    },
+
+    async updatePassword(newPassword) {
+        const { data, error } = await supabase.auth.updateUser({
+            password: newPassword
+        });
+        
+        if (error) throw error;
+        return data;
+    },
+
+    // Auth state listener
+    onAuthStateChange(callback) {
+        return supabase.auth.onAuthStateChange(callback);
+    },
+
     // Realtime subscriptions
     subscribeToArizalar(callback) {
         return supabase
