@@ -1,102 +1,6 @@
 // Yeni Özellikler - Arama, Filtreler, Export, Dark Mode
 
-let tumArizalar = [];
-let filtrelenmisArizalar = [];
-
-// Arama fonksiyonu
-const aramaInput = document.getElementById('arama-input');
-if (aramaInput) {
-    aramaInput.addEventListener('input', (e) => {
-        aramaYap(e.target.value);
-    });
-}
-
-function aramaYap(aranacak) {
-    const aranan = aranacak.toLowerCase().trim();
-    
-    if (!aranan) {
-        filtrelenmisArizalar = tumArizalar;
-    } else {
-        filtrelenmisArizalar = tumArizalar.filter(ariza => {
-            return (
-                ariza.birim?.toLowerCase().includes(aranan) ||
-                ariza.talepEden?.toLowerCase().includes(aranan) ||
-                ariza.aciklama?.toLowerCase().includes(aranan) ||
-                ariza.yapilanIsler?.toLowerCase().includes(aranan) ||
-                ariza.cihazTuru?.toLowerCase().includes(aranan) ||
-                ariza.arizaTuru?.toLowerCase().includes(aranan)
-            );
-        });
-    }
-    
-    filtreleriUygula();
-}
-
-// Tarih filtresi
-const tarihFiltre = document.getElementById('tarih-filtre');
-if (tarihFiltre) {
-    tarihFiltre.addEventListener('change', () => {
-        filtreleriUygula();
-    });
-}
-
-function tarihFiltreUygula(arizalar) {
-    const filtre = tarihFiltre?.value || 'tumu';
-    if (filtre === 'tumu') return arizalar;
-    
-    const simdi = new Date();
-    const bugun = new Date(simdi.getFullYear(), simdi.getMonth(), simdi.getDate());
-    
-    return arizalar.filter(ariza => {
-        const arizaTarihi = new Date(ariza.timestamp);
-        
-        switch (filtre) {
-            case 'bugun':
-                return arizaTarihi >= bugun;
-            case 'bu-hafta':
-                const haftaBasi = new Date(bugun);
-                haftaBasi.setDate(bugun.getDate() - bugun.getDay());
-                return arizaTarihi >= haftaBasi;
-            case 'bu-ay':
-                const ayBasi = new Date(simdi.getFullYear(), simdi.getMonth(), 1);
-                return arizaTarihi >= ayBasi;
-            default:
-                return true;
-        }
-    });
-}
-
-function filtreleriUygula() {
-    let sonuc = filtrelenmisArizalar.length > 0 ? filtrelenmisArizalar : tumArizalar;
-    
-    // Durum filtresi
-    const durumFiltre = document.getElementById('durum-filtre');
-    if (durumFiltre && durumFiltre.value !== 'tumu') {
-        sonuc = sonuc.filter(a => a.durum === durumFiltre.value);
-    }
-    
-    // Tarih filtresi
-    sonuc = tarihFiltreUygula(sonuc);
-    
-    // İstatistikleri güncelle
-    istatistikleriGuncelle(tumArizalar);
-    
-    // Listeyi göster
-    arizalariGoster(sonuc);
-}
-
-// İstatistikler
-function istatistikleriGuncelle(arizalar) {
-    const toplam = arizalar.length;
-    const beklemede = arizalar.filter(a => a.durum === 'beklemede').length;
-    const devam = arizalar.filter(a => a.durum === 'devam-ediyor').length;
-    const tamamlandi = arizalar.filter(a => a.durum === 'tamamlandi').length;
-    
-    document.getElementById('stat-toplam').textContent = toplam;
-    document.getElementById('stat-beklemede').textContent = beklemede;
-    document.getElementById('stat-devam').textContent = devam;
-    document.getElementById('stat-tamamlandi').textContent = tamamlandi;
-}
+// NOT: allArizalar global değişkeni app.js'de tanımlı
 
 // Excel Export
 const excelBtn = document.getElementById('excel-export');
@@ -107,23 +11,24 @@ if (excelBtn) {
 }
 
 function exportToExcel() {
-    if (!tumArizalar || tumArizalar.length === 0) {
+    // allArizalar app.js'den geliyor
+    if (!window.allArizalar || !allArizalar || allArizalar.length === 0) {
         showToast('Dışa aktarılacak veri yok', 'warning');
         return;
     }
     
     try {
-        const data = tumArizalar.map(ariza => ({
+        const data = allArizalar.map(ariza => ({
             'ID': ariza.id ? ariza.id.substring(0, 8) : 'N/A',
             'Müdürlük': ariza.birim || '',
-            'Cihaz Türü': ariza.cihazTuru || '',
-            'Arıza Türü': ariza.arizaTuru || '',
-            'Talep Eden': ariza.talepEden || '',
+            'Cihaz Türü': ariza.cihaz_turu || '',
+            'Arıza Türü': ariza.ariza_turu || '',
+            'Talep Eden': ariza.talep_eden || '',
             'Arıza Açıklaması': ariza.aciklama || '',
-            'Yapılan İşler': ariza.yapilanIsler || '',
-            'Atanan Kişi': ariza.atananKisi || '',
-            'Durum': durumMetni(ariza.durum || 'beklemede'),
-            'Tarih': ariza.tarih || safeDateFormat(ariza.timestamp)
+            'Yapılan İşler': ariza.yapilan_isler || '',
+            'Atanan Kişi': ariza.atanan_kisi || '',
+            'Durum': getDurumText(ariza.durum || 'beklemede'),
+            'Tarih': ariza.tarih || new Date(ariza.timestamp).toLocaleDateString('tr-TR')
         }));
         
         const ws = XLSX.utils.json_to_sheet(data);
@@ -137,7 +42,7 @@ function exportToExcel() {
         if (typeof playSound === 'function') playSound('success');
     } catch (error) {
         console.error('Excel export hatası:', error);
-        showToast('Excel oluşturulurken hata oluştu', 'error');
+        showToast('Excel oluşturulurken hata oluştu: ' + error.message, 'error');
     }
 }
 
@@ -150,75 +55,78 @@ if (pdfBtn) {
 }
 
 function exportToPDF() {
-    if (tumArizalar.length === 0) {
+    // allArizalar app.js'den geliyor
+    if (!window.allArizalar || !allArizalar || allArizalar.length === 0) {
         showToast('Dışa aktarılacak veri yok', 'warning');
         return;
     }
     
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    // Türkçe karakter desteği için font ayarı
-    doc.setLanguage("tr");
-    
-    // Başlık
-    doc.setFontSize(16);
-    doc.text('Dosemealti Belediyesi', 105, 15, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text('Bilgi Islem Ariza Kayitlari', 105, 22, { align: 'center' });
-    doc.setFontSize(10);
-    doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 105, 28, { align: 'center' });
-    
-    // İstatistikler
-    const beklemede = tumArizalar.filter(a => a.durum === 'beklemede').length;
-    const devamEdiyor = tumArizalar.filter(a => a.durum === 'devam-ediyor').length;
-    const tamamlandi = tumArizalar.filter(a => a.durum === 'tamamlandi').length;
-    
-    doc.setFontSize(10);
-    doc.text(`Toplam: ${tumArizalar.length} | Beklemede: ${beklemede} | Devam Ediyor: ${devamEdiyor} | Tamamlandi: ${tamamlandi}`, 105, 35, { align: 'center' });
-    
-    // Türkçe karakterleri değiştir
-    const turkishToEnglish = (text) => {
-        if (!text) return '';
-        return text
-            .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
-            .replace(/ü/g, 'u').replace(/Ü/g, 'U')
-            .replace(/ş/g, 's').replace(/Ş/g, 'S')
-            .replace(/ı/g, 'i').replace(/İ/g, 'I')
-            .replace(/ö/g, 'o').replace(/Ö/g, 'O')
-            .replace(/ç/g, 'c').replace(/Ç/g, 'C');
-    };
-    
-    // Tablo
-    const tableData = tumArizalar.map(ariza => [
-        ariza.id.substring(0, 8),
-        turkishToEnglish(ariza.birim),
-        turkishToEnglish(ariza.cihazTuru),
-        turkishToEnglish(ariza.talepEden),
-        turkishToEnglish(durumMetni(ariza.durum)),
-        ariza.tarih
-    ]);
-    
-    doc.autoTable({
-        startY: 40,
-        head: [['ID', 'Mudurluk', 'Cihaz', 'Talep Eden', 'Durum', 'Tarih']],
-        body: tableData,
-        styles: { 
-            fontSize: 8,
-            font: 'helvetica'
-        },
-        headStyles: { 
-            fillColor: [102, 126, 234],
-            font: 'helvetica',
-            fontStyle: 'bold'
-        }
-    });
-    
-    const tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
-    doc.save(`ariza-raporu-${tarih}.pdf`);
-    
-    showToast('PDF raporu indirildi', 'success');
-    playSound('success');
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Başlık
+        doc.setFontSize(16);
+        doc.text('Dosemealti Belediyesi', 105, 15, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text('Bilgi Islem Ariza Kayitlari', 105, 22, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 105, 28, { align: 'center' });
+        
+        // İstatistikler
+        const beklemede = allArizalar.filter(a => a.durum === 'beklemede').length;
+        const devamEdiyor = allArizalar.filter(a => a.durum === 'devam-ediyor').length;
+        const tamamlandi = allArizalar.filter(a => a.durum === 'tamamlandi').length;
+        
+        doc.setFontSize(10);
+        doc.text(`Toplam: ${allArizalar.length} | Beklemede: ${beklemede} | Devam Ediyor: ${devamEdiyor} | Tamamlandi: ${tamamlandi}`, 105, 35, { align: 'center' });
+        
+        // Türkçe karakterleri değiştir
+        const turkishToEnglish = (text) => {
+            if (!text) return '';
+            return text
+                .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+                .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+                .replace(/ş/g, 's').replace(/Ş/g, 'S')
+                .replace(/ı/g, 'i').replace(/İ/g, 'I')
+                .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+                .replace(/ç/g, 'c').replace(/Ç/g, 'C');
+        };
+        
+        // Tablo
+        const tableData = allArizalar.map(ariza => [
+            ariza.id.substring(0, 8),
+            turkishToEnglish(ariza.birim),
+            turkishToEnglish(ariza.cihaz_turu),
+            turkishToEnglish(ariza.talep_eden),
+            turkishToEnglish(getDurumText(ariza.durum)),
+            ariza.tarih
+        ]);
+        
+        doc.autoTable({
+            startY: 40,
+            head: [['ID', 'Mudurluk', 'Cihaz', 'Talep Eden', 'Durum', 'Tarih']],
+            body: tableData,
+            styles: { 
+                fontSize: 8,
+                font: 'helvetica'
+            },
+            headStyles: { 
+                fillColor: [102, 126, 234],
+                font: 'helvetica',
+                fontStyle: 'bold'
+            }
+        });
+        
+        const tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
+        doc.save(`ariza-raporu-${tarih}.pdf`);
+        
+        showToast('PDF raporu indirildi', 'success');
+        if (typeof playSound === 'function') playSound('success');
+    } catch (error) {
+        console.error('PDF export hatası:', error);
+        showToast('PDF oluşturulurken hata oluştu: ' + error.message, 'error');
+    }
 }
 
 // Dark Mode

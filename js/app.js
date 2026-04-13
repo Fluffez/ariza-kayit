@@ -4,6 +4,9 @@ let mudurlukler = [];
 // Çalışanlar listesi - Supabase'den yüklenecek
 let calisanlar = [];
 
+// Çift submit önleme flag'i
+let isSubmitting = false;
+
 // Supabase'den listeleri yükle
 async function loadListsFromSupabase() {
     try {
@@ -335,17 +338,17 @@ function showMainApp() {
     }
     
     // Supabase kontrolü
-    if (typeof db === 'undefined') {
+    if (typeof supabase === 'undefined') {
         console.warn('Supabase henüz yüklenmedi, bekleniyor...');
         let retryCount = 0;
         const maxRetries = 5;
         
         const checkSupabase = setInterval(() => {
             retryCount++;
-            if (typeof db !== 'undefined') {
+            if (typeof supabase !== 'undefined') {
                 console.log('Supabase yüklendi, veriler çekiliyor...');
                 clearInterval(checkSupabase);
-                arizalariYukle();
+                loadArizalar();
             } else if (retryCount >= maxRetries) {
                 console.error('Supabase yüklenemedi');
                 clearInterval(checkSupabase);
@@ -353,7 +356,7 @@ function showMainApp() {
             }
         }, 1000);
     } else {
-        arizalariYukle();
+        loadArizalar();
     }
 }
 
@@ -551,195 +554,9 @@ modal.addEventListener('click', (e) => {
     }
 });
 
-// Form gönderimi
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Çift submit önleme
-    if (isSubmitting) {
-        return;
-    }
-    
-    // Validasyon
-    let isValid = true;
-    
-    // Müdürlük kontrolü
-    const birimValue = document.getElementById('birim').value.trim();
-    const birimError = document.getElementById('birim-error');
-    const birimInput = document.getElementById('birim');
-    
-    if (!birimValue) {
-        birimError.textContent = 'Lütfen müdürlük seçiniz';
-        birimInput.classList.add('error');
-        isValid = false;
-    } else if (!mudurlukler.includes(birimValue)) {
-        birimError.textContent = 'Lütfen listeden bir müdürlük seçiniz';
-        birimInput.classList.add('error');
-        isValid = false;
-    } else if (hasInvalidChars(birimValue)) {
-        birimError.textContent = 'Geçersiz karakterler içeriyor';
-        birimInput.classList.add('error');
-        isValid = false;
-    } else {
-        birimError.textContent = '';
-        birimInput.classList.remove('error');
-    }
-    
-    // Cihaz türü kontrolü
-    const cihazValue = document.getElementById('cihaz-turu').value;
-    const cihazError = document.getElementById('cihaz-error');
-    const cihazInput = document.getElementById('cihaz-turu');
-    
-    if (!cihazValue) {
-        cihazError.textContent = 'Lütfen cihaz türü seçiniz';
-        cihazInput.classList.add('error');
-        isValid = false;
-    } else {
-        cihazError.textContent = '';
-        cihazInput.classList.remove('error');
-    }
-    
-    // Arıza türü kontrolü
-    const arizaTuruValue = document.getElementById('ariza-turu').value;
-    const arizaTuruError = document.getElementById('ariza-turu-error');
-    const arizaTuruInput = document.getElementById('ariza-turu');
-    
-    if (!arizaTuruValue) {
-        arizaTuruError.textContent = 'Lütfen arıza türü seçiniz';
-        arizaTuruInput.classList.add('error');
-        isValid = false;
-    } else {
-        arizaTuruError.textContent = '';
-        arizaTuruInput.classList.remove('error');
-    }
-    
-    // Talep eden kontrolü
-    const talepValue = document.getElementById('talep-eden').value.trim();
-    const talepError = document.getElementById('talep-error');
-    const talepInput = document.getElementById('talep-eden');
-    
-    if (!talepValue) {
-        talepError.textContent = 'Lütfen talep eden bilgisini giriniz';
-        talepInput.classList.add('error');
-        isValid = false;
-    } else if (hasInvalidChars(talepValue)) {
-        talepError.textContent = 'Geçersiz karakterler içeriyor';
-        talepInput.classList.add('error');
-        isValid = false;
-    } else {
-        talepError.textContent = '';
-        talepInput.classList.remove('error');
-    }
-    
-    // Yapılan işler kontrolü
-    const yapilanValue = document.getElementById('yapilan-isler').value.trim();
-    const yapilanError = document.getElementById('yapilan-error');
-    const yapilanInput = document.getElementById('yapilan-isler');
-    
-    if (!yapilanValue) {
-        yapilanError.textContent = 'Lütfen yapılan işleri giriniz';
-        yapilanInput.classList.add('error');
-        isValid = false;
-    } else if (hasInvalidChars(yapilanValue)) {
-        yapilanError.textContent = 'Geçersiz karakterler içeriyor';
-        yapilanInput.classList.add('error');
-        isValid = false;
-    } else {
-        yapilanError.textContent = '';
-        yapilanInput.classList.remove('error');
-    }
-    
-    // Açıklama kontrolü (opsiyonel ama kontrol edelim)
-    const aciklamaValue = document.getElementById('aciklama').value.trim();
-    if (aciklamaValue && hasInvalidChars(aciklamaValue)) {
-        showToast('Açıklama geçersiz karakterler içeriyor', 'error');
-        isValid = false;
-    }
-    
-    if (!isValid) {
-        showToast('Lütfen tüm zorunlu alanları doğru doldurunuz', 'error');
-        return;
-    }
-    
-    // Supabase kontrolü
-    if (typeof db === 'undefined') {
-        showToast('Veritabanı bağlantısı yok. Lütfen sayfayı yenileyin.', 'error');
-        return;
-    }
-    
-    isSubmitting = true;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Kaydediliyor...';
-    
-    const arizaData = {
-        birim: sanitizeHTML(birimValue),
-        cihaz_turu: sanitizeHTML(cihazValue),
-        ariza_turu: sanitizeHTML(arizaTuruValue),
-        aciklama: sanitizeHTML(aciklamaValue) || '',
-        yapilan_isler: sanitizeHTML(yapilanValue),
-        talep_eden: sanitizeHTML(talepValue),
-        atanan_kisi: sanitizeHTML(document.getElementById('atanan-kisi')?.value.trim() || ''),
-        durum: editingId ? undefined : 'beklemede',
-        tarih: safeDateFormat(Date.now()),
-        timestamp: Date.now()
-    };
-    
-    try {
-        if (editingId) {
-            await db.updateAriza(editingId, arizaData);
-            showToast('Kayıt başarıyla güncellendi', 'success');
-            if (typeof playSound === 'function') playSound('success');
-        } else {
-            await db.addAriza(arizaData);
-            showToast('Yeni kayıt başarıyla eklendi', 'success');
-            if (typeof playSound === 'function') playSound('success');
-        }
-        form.reset();
-        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
-        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-        modal.classList.remove('active');
-        editingId = null;
-        formDirty = false;
-    } catch (error) {
-        console.error('Kayıt hatası:', error);
-        showToast('İşlem sırasında bir hata oluştu: ' + error.message, 'error');
-    } finally {
-        isSubmitting = false;
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-    }
-});
+// Eski form submit handler kaldırıldı - yeni handler aşağıda (1184. satır civarında)
 
-// Durum filtreleme
-durumFiltre.addEventListener('change', () => {
-    arizalariYukle();
-});
-
-// Arızaları yükle
-async function arizalariYukle() {
-    try {
-        tumArizalar = await db.getArizalar();
-        filtrelenmisArizalar = tumArizalar;
-        
-        // Filtreleri uygula
-        if (typeof filtreleriUygula === 'function') {
-            filtreleriUygula();
-        } else {
-            arizalariGoster(tumArizalar);
-        }
-        
-        // Realtime updates için subscribe
-        db.subscribeToArizalar((payload) => {
-            console.log('Arıza değişikliği:', payload);
-            arizalariYukle(); // Yeniden yükle
-        });
-    } catch (error) {
-        console.error('Arıza yükleme hatası:', error);
-        showToast('Veriler yüklenirken hata oluştu', 'error');
-    }
-}
+// Eski arizalariYukle fonksiyonu kaldırıldı - loadArizalar kullanılıyor
 
 // Arızaları göster
 function arizalariGoster(arizalar) {
@@ -870,44 +687,7 @@ async function duzenle(id) {
     }
 }
 
-// Sil - Global fonksiyon
-let deleteCallback = null;
-
-window.silArizaKaydi = function(id) {
-    console.log('Silme işlemi başlatıldı, ID:', id);
-    const confirmModal = document.getElementById('confirm-modal');
-    confirmModal.classList.add('active');
-    
-    deleteCallback = async () => {
-        console.log('Silme onaylandı, siliniyor...');
-        try {
-            await db.deleteAriza(id);
-            console.log('Kayıt başarıyla silindi');
-            showToast('Kayıt başarıyla silindi', 'success');
-        } catch (error) {
-            console.error('Silme hatası:', error);
-            showToast('Kayıt silinirken bir hata oluştu!', 'error');
-        }
-    };
-}
-
-// Confirmation modal kontrolleri
-document.getElementById('confirm-yes').addEventListener('click', () => {
-    console.log('Evet butonuna tıklandı');
-    document.getElementById('confirm-modal').classList.remove('active');
-    if (deleteCallback) {
-        deleteCallback();
-        deleteCallback = null;
-    } else {
-        console.log('deleteCallback bulunamadı!');
-    }
-});
-
-document.getElementById('confirm-no').addEventListener('click', () => {
-    console.log('İptal butonuna tıklandı');
-    document.getElementById('confirm-modal').classList.remove('active');
-    deleteCallback = null;
-});
+// Eski silme kodu kaldırıldı - yeni deleteAriza fonksiyonu kullanılıyor
 
 // Toast notification
 function showToast(message, type = 'success') {
@@ -965,19 +745,29 @@ async function loadArizalar() {
         // Minimum 500ms bekle (smooth görünsün)
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        if (!arizalar || arizalar.length === 0) {
+        // Global değişkeni güncelle
+        allArizalar = arizalar || [];
+        window.allArizalar = allArizalar; // features.js için
+        
+        if (allArizalar.length === 0) {
             arizaListesi.innerHTML = `
                 <div class="empty-state fade-in">
                     <h3>📋 Henüz arıza kaydı yok</h3>
                     <p>Yeni bir arıza kaydı eklemek için + butonuna tıklayın</p>
                 </div>
             `;
-            updateStats(arizalar);
+            updateStats(allArizalar);
             return;
         }
         
-        displayArizalar(arizalar);
-        updateStats(arizalar);
+        // Filtreleri uygula (eğer arama/filtre varsa)
+        if (typeof applyFilters === 'function') {
+            applyFilters();
+        } else {
+            // Filtre fonksiyonu yoksa direkt göster
+            displayArizalar(allArizalar);
+            updateStats(allArizalar);
+        }
     } catch (error) {
         console.error('Arıza yükleme hatası:', error);
         arizaListesi.innerHTML = `
@@ -1027,30 +817,42 @@ function updateStats(arizalar) {
     const devam = arizalar.filter(a => a.durum === 'devam-ediyor').length;
     const tamamlandi = arizalar.filter(a => a.durum === 'tamamlandi').length;
     
-    // Animasyonlu sayı güncelleme
-    animateValue('stat-toplam', 0, toplam, 500);
-    animateValue('stat-beklemede', 0, beklemede, 500);
-    animateValue('stat-devam', 0, devam, 500);
-    animateValue('stat-tamamlandi', 0, tamamlandi, 500);
+    // Animasyonlu sayı güncelleme (twixtor efekti - ease-out)
+    animateValue('stat-toplam', 0, toplam, 800);
+    animateValue('stat-beklemede', 0, beklemede, 800);
+    animateValue('stat-devam', 0, devam, 800);
+    animateValue('stat-tamamlandi', 0, tamamlandi, 800);
 }
 
-// Sayı animasyonu
+// Sayı animasyonu (twixtor efekti - ease-out)
 function animateValue(id, start, end, duration) {
     const element = document.getElementById(id);
     if (!element) return;
     
-    const range = end - start;
-    const increment = range / (duration / 16);
-    let current = start;
+    const startTime = performance.now();
     
-    const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-            current = end;
-            clearInterval(timer);
-        }
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease-out cubic easing
+        const easedProgress = easeOutCubic(progress);
+        const current = start + (end - start) * easedProgress;
+        
         element.textContent = Math.round(current);
-    }, 16);
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = end;
+        }
+    }
+    
+    requestAnimationFrame(update);
 }
 
 // Durum metni
@@ -1083,7 +885,73 @@ async function updateDurum(id, yeniDurum) {
 
 // Arıza sil
 async function deleteAriza(id) {
-    if (!confirm('Bu arıza kaydını silmek istediğinizden emin misiniz?')) return;
+    console.log('deleteAriza çağrıldı, ID:', id);
+    
+    // Özel confirm modal'ı göster
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmDelete = document.getElementById('confirm-delete');
+    const confirmCancel = document.getElementById('confirm-cancel');
+    
+    console.log('Modal elementleri:', {
+        confirmModal: !!confirmModal,
+        confirmDelete: !!confirmDelete,
+        confirmCancel: !!confirmCancel
+    });
+    
+    if (!confirmModal || !confirmDelete || !confirmCancel) {
+        console.error('Confirm modal elementleri bulunamadı');
+        alert('Modal elementleri bulunamadı! Sayfayı yenileyin.');
+        return;
+    }
+    
+    console.log('Modal açılıyor...');
+    confirmModal.classList.add('active');
+    
+    // Promise ile onay bekle
+    const confirmed = await new Promise((resolve) => {
+        const handleDelete = () => {
+            console.log('Sil butonuna tıklandı');
+            cleanup();
+            resolve(true);
+        };
+        
+        const handleCancel = () => {
+            console.log('İptal butonuna tıklandı');
+            cleanup();
+            resolve(false);
+        };
+        
+        const handleClickOutside = (e) => {
+            if (e.target === confirmModal) {
+                console.log('Modal dışına tıklandı');
+                cleanup();
+                resolve(false);
+            }
+        };
+        
+        const cleanup = () => {
+            console.log('Event listenerlar temizleniyor');
+            confirmDelete.removeEventListener('click', handleDelete);
+            confirmCancel.removeEventListener('click', handleCancel);
+            confirmModal.removeEventListener('click', handleClickOutside);
+            confirmModal.classList.remove('active');
+        };
+        
+        confirmDelete.addEventListener('click', handleDelete);
+        confirmCancel.addEventListener('click', handleCancel);
+        confirmModal.addEventListener('click', handleClickOutside);
+        
+        console.log('Event listenerlar eklendi, onay bekleniyor...');
+    });
+    
+    console.log('Onay sonucu:', confirmed);
+    
+    if (!confirmed) {
+        console.log('Silme iptal edildi');
+        return;
+    }
+    
+    console.log('Silme işlemi başlıyor...');
     
     try {
         const { error } = await supabase
@@ -1093,6 +961,7 @@ async function deleteAriza(id) {
         
         if (error) throw error;
         
+        console.log('Silme başarılı');
         showToast('Arıza kaydı silindi', 'success');
         loadArizalar();
     } catch (error) {
@@ -1145,6 +1014,7 @@ window.loadArizalar = loadArizalar;
 window.updateDurum = updateDurum;
 window.deleteAriza = deleteAriza;
 window.editAriza = editAriza;
+window.getDurumText = getDurumText;
 
 
 // Form submit handler
@@ -1153,6 +1023,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('modal');
     const fabBtn = document.getElementById('fab-btn');
     const closeBtn = document.getElementById('close-btn');
+    
+    console.log('DOMContentLoaded - Form elementi:', !!arizaForm);
     
     // FAB button - yeni arıza ekle
     if (fabBtn) {
@@ -1181,17 +1053,144 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Form submit
     if (arizaForm) {
+        console.log('Form submit event listener ekleniyor...');
         arizaForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            console.log('Form submit başladı, isSubmitting:', isSubmitting);
+            
+            // Çift submit önleme
+            if (isSubmitting) {
+                console.log('Zaten submit ediliyor, iptal ediliyor');
+                return;
+            }
+            
+            // Form verilerini al
+            const birimValue = document.getElementById('birim').value.trim();
+            const cihazValue = document.getElementById('cihaz-turu').value;
+            const arizaTuruValue = document.getElementById('ariza-turu').value;
+            const talepValue = document.getElementById('talep-eden').value.trim();
+            const aciklamaValue = document.getElementById('aciklama').value.trim();
+            const yapilanValue = document.getElementById('yapilan-isler').value.trim();
+            const atananValue = document.getElementById('atanan-kisi').value.trim();
+            
+            // Validasyon
+            let isValid = true;
+            
+            // Müdürlük kontrolü
+            const birimError = document.getElementById('birim-error');
+            const birimInput = document.getElementById('birim');
+            
+            if (!birimValue) {
+                if (birimError) birimError.textContent = 'Lütfen müdürlük seçiniz';
+                if (birimInput) birimInput.classList.add('error');
+                isValid = false;
+            } else if (!mudurlukler.includes(birimValue)) {
+                if (birimError) birimError.textContent = 'Lütfen listeden bir müdürlük seçiniz';
+                if (birimInput) birimInput.classList.add('error');
+                isValid = false;
+            } else if (hasInvalidChars(birimValue)) {
+                if (birimError) birimError.textContent = 'Geçersiz karakterler içeriyor';
+                if (birimInput) birimInput.classList.add('error');
+                isValid = false;
+            } else {
+                if (birimError) birimError.textContent = '';
+                if (birimInput) birimInput.classList.remove('error');
+            }
+            
+            // Cihaz türü kontrolü
+            const cihazError = document.getElementById('cihaz-error');
+            const cihazInput = document.getElementById('cihaz-turu');
+            
+            if (!cihazValue) {
+                if (cihazError) cihazError.textContent = 'Lütfen cihaz türü seçiniz';
+                if (cihazInput) cihazInput.classList.add('error');
+                isValid = false;
+            } else {
+                if (cihazError) cihazError.textContent = '';
+                if (cihazInput) cihazInput.classList.remove('error');
+            }
+            
+            // Arıza türü kontrolü
+            const arizaTuruError = document.getElementById('ariza-turu-error');
+            const arizaTuruInput = document.getElementById('ariza-turu');
+            
+            if (!arizaTuruValue) {
+                if (arizaTuruError) arizaTuruError.textContent = 'Lütfen arıza türü seçiniz';
+                if (arizaTuruInput) arizaTuruInput.classList.add('error');
+                isValid = false;
+            } else {
+                if (arizaTuruError) arizaTuruError.textContent = '';
+                if (arizaTuruInput) arizaTuruInput.classList.remove('error');
+            }
+            
+            // Talep eden kontrolü
+            const talepError = document.getElementById('talep-error');
+            const talepInput = document.getElementById('talep-eden');
+            
+            if (!talepValue) {
+                if (talepError) talepError.textContent = 'Lütfen talep eden bilgisini giriniz';
+                if (talepInput) talepInput.classList.add('error');
+                isValid = false;
+            } else if (hasInvalidChars(talepValue)) {
+                if (talepError) talepError.textContent = 'Geçersiz karakterler içeriyor';
+                if (talepInput) talepInput.classList.add('error');
+                isValid = false;
+            } else {
+                if (talepError) talepError.textContent = '';
+                if (talepInput) talepInput.classList.remove('error');
+            }
+            
+            // Yapılan işler kontrolü
+            const yapilanError = document.getElementById('yapilan-error');
+            const yapilanInput = document.getElementById('yapilan-isler');
+            
+            if (!yapilanValue) {
+                if (yapilanError) yapilanError.textContent = 'Lütfen yapılan işleri giriniz';
+                if (yapilanInput) yapilanInput.classList.add('error');
+                isValid = false;
+            } else if (hasInvalidChars(yapilanValue)) {
+                if (yapilanError) yapilanError.textContent = 'Geçersiz karakterler içeriyor';
+                if (yapilanInput) yapilanInput.classList.add('error');
+                isValid = false;
+            } else {
+                if (yapilanError) yapilanError.textContent = '';
+                if (yapilanInput) yapilanInput.classList.remove('error');
+            }
+            
+            // Açıklama kontrolü (opsiyonel)
+            if (aciklamaValue && hasInvalidChars(aciklamaValue)) {
+                showToast('Açıklama geçersiz karakterler içeriyor', 'error');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                showToast('Lütfen tüm zorunlu alanları doğru doldurunuz', 'error');
+                return;
+            }
+            
+            // Supabase kontrolü
+            if (typeof supabase === 'undefined') {
+                showToast('Veritabanı bağlantısı yok. Lütfen sayfayı yenileyin.', 'error');
+                return;
+            }
+            
+            isSubmitting = true;
+            const submitBtn = arizaForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.textContent : 'Kaydet';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Kaydediliyor...';
+            }
+            
             const formData = {
-                birim: document.getElementById('birim').value.trim(),
-                cihaz_turu: document.getElementById('cihaz-turu').value,
-                ariza_turu: document.getElementById('ariza-turu').value,
-                talep_eden: document.getElementById('talep-eden').value.trim(),
-                aciklama: document.getElementById('aciklama').value.trim(),
-                yapilan_isler: document.getElementById('yapilan-isler').value.trim(),
-                atanan_kisi: document.getElementById('atanan-kisi').value.trim(),
+                birim: sanitizeHTML(birimValue),
+                cihaz_turu: sanitizeHTML(cihazValue),
+                ariza_turu: sanitizeHTML(arizaTuruValue),
+                talep_eden: sanitizeHTML(talepValue),
+                aciklama: sanitizeHTML(aciklamaValue) || '',
+                yapilan_isler: sanitizeHTML(yapilanValue),
+                atanan_kisi: sanitizeHTML(atananValue) || '',
                 tarih: new Date().toLocaleDateString('tr-TR'),
                 timestamp: Date.now()
             };
@@ -1224,15 +1223,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Arıza kaydı eklendi', 'success');
                 }
                 
+                console.log('İşlem başarılı, modal kapatılıyor');
+                
                 // Modal'ı kapat ve listeyi yenile
-                modal.classList.remove('active');
+                if (modal) {
+                    modal.classList.remove('active');
+                    console.log('Modal kapatıldı');
+                } else {
+                    console.error('Modal elementi bulunamadı!');
+                }
+                
                 arizaForm.reset();
+                document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+                document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
                 delete arizaForm.dataset.editId;
                 delete arizaForm.dataset.editMode;
                 loadArizalar();
             } catch (error) {
                 console.error('Form submit hatası:', error);
                 showToast('İşlem sırasında hata oluştu: ' + error.message, 'error');
+            } finally {
+                isSubmitting = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
             }
         });
     }
@@ -1241,66 +1256,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Arama ve Filtreleme
 let allArizalar = []; // Tüm arızaları sakla
-
-// Arızaları yükle (güncellenmiş)
-async function loadArizalarWithFilter() {
-    const arizaListesi = document.getElementById('ariza-listesi');
-    if (!arizaListesi) return;
-    
-    try {
-        // Skeleton loader göster
-        arizaListesi.innerHTML = `
-            <div class="skeleton-loader">
-                ${Array(3).fill(0).map(() => `
-                    <div class="skeleton-card">
-                        <div class="skeleton-header">
-                            <div class="skeleton-line skeleton-id"></div>
-                            <div class="skeleton-line skeleton-badge"></div>
-                        </div>
-                        <div class="skeleton-body">
-                            <div class="skeleton-line"></div>
-                            <div class="skeleton-line"></div>
-                            <div class="skeleton-line skeleton-short"></div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        
-        const { data: arizalar, error } = await supabase
-            .from('arizalar')
-            .select('*')
-            .order('timestamp', { ascending: false });
-        
-        if (error) throw error;
-        
-        // Minimum 500ms bekle
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        allArizalar = arizalar || [];
-        
-        if (allArizalar.length === 0) {
-            arizaListesi.innerHTML = `
-                <div class="empty-state fade-in">
-                    <h3>📋 Henüz arıza kaydı yok</h3>
-                    <p>Yeni bir arıza kaydı eklemek için + butonuna tıklayın</p>
-                </div>
-            `;
-            updateStats(allArizalar);
-            return;
-        }
-        
-        applyFilters();
-    } catch (error) {
-        console.error('Arıza yükleme hatası:', error);
-        arizaListesi.innerHTML = `
-            <div class="empty-state fade-in">
-                <h3>❌ Veriler yüklenirken hata oluştu</h3>
-                <p>${error.message}</p>
-            </div>
-        `;
-    }
-}
+window.allArizalar = allArizalar; // features.js için global yap
 
 // Filtreleri uygula
 function applyFilters() {
@@ -1361,6 +1317,7 @@ function applyFilters() {
         displayArizalar(filteredData);
     }
     
+    // İstatistikler filtrelenmiş verilerden gösterilsin
     updateStats(filteredData);
 }
 

@@ -89,19 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// 6. Çift tıklama önleme (Double submit)
-let isSubmitting = false;
-const originalFormSubmit = document.getElementById('ariza-form')?.addEventListener;
-if (originalFormSubmit) {
-    const form = document.getElementById('ariza-form');
-    form.addEventListener('submit', (e) => {
-        if (isSubmitting) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        }
-    }, true);
-}
+// 6. Çift tıklama önleme - app.js'de hallediliyor, burada gereksiz
 
 // 7. Modal dışına tıklama - ESC tuşu desteği
 document.addEventListener('keydown', (e) => {

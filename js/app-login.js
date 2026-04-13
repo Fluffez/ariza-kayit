@@ -113,12 +113,48 @@ function initializeMascotAnimation() {
 function initializePasswordToggle() {
     const togglePassword = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
+    const mascot = document.getElementById('mascot');
+    const leftEyeNormal = document.getElementById('left-eye-normal');
+    const rightEyeNormal = document.getElementById('right-eye-normal');
+    const leftEyeClosed = document.getElementById('left-eye-closed');
+    const rightEyeClosed = document.getElementById('right-eye-closed');
     
     if (!togglePassword || !passwordInput) return;
     
     togglePassword.addEventListener('click', () => {
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
+        
+        // Panda animasyonu
+        if (type === 'text') {
+            // Şifre gösteriliyor - gözleri aç
+            if (mascot) mascot.classList.remove('covering');
+            if (leftEyeClosed && rightEyeClosed && leftEyeNormal && rightEyeNormal) {
+                leftEyeClosed.style.display = 'none';
+                rightEyeClosed.style.display = 'none';
+                leftEyeNormal.style.display = 'block';
+                rightEyeNormal.style.display = 'block';
+                leftEyeNormal.style.opacity = '1';
+                rightEyeNormal.style.opacity = '1';
+            }
+        } else {
+            // Şifre gizleniyor - gözleri kapat
+            if (mascot) mascot.classList.add('covering');
+            setTimeout(() => {
+                if (leftEyeNormal && rightEyeNormal) {
+                    leftEyeNormal.style.opacity = '0';
+                    rightEyeNormal.style.opacity = '0';
+                }
+            }, 300);
+            setTimeout(() => {
+                if (leftEyeNormal && rightEyeNormal && leftEyeClosed && rightEyeClosed) {
+                    leftEyeNormal.style.display = 'none';
+                    rightEyeNormal.style.display = 'none';
+                    leftEyeClosed.style.display = 'block';
+                    rightEyeClosed.style.display = 'block';
+                }
+            }, 400);
+        }
         
         // İkon değiştir
         const svg = togglePassword.querySelector('svg');
