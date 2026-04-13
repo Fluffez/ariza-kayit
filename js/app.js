@@ -936,7 +936,24 @@ async function loadArizalar() {
     if (!arizaListesi) return;
     
     try {
-        arizaListesi.innerHTML = '<div class="loading">Yükleniyor...</div>';
+        // Skeleton loader göster
+        arizaListesi.innerHTML = `
+            <div class="skeleton-loader">
+                ${Array(3).fill(0).map(() => `
+                    <div class="skeleton-card">
+                        <div class="skeleton-header">
+                            <div class="skeleton-line skeleton-id"></div>
+                            <div class="skeleton-line skeleton-badge"></div>
+                        </div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line skeleton-short"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
         
         const { data: arizalar, error } = await supabase
             .from('arizalar')
@@ -945,9 +962,12 @@ async function loadArizalar() {
         
         if (error) throw error;
         
+        // Minimum 500ms bekle (smooth görünsün)
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         if (!arizalar || arizalar.length === 0) {
             arizaListesi.innerHTML = `
-                <div class="empty-state">
+                <div class="empty-state fade-in">
                     <h3>📋 Henüz arıza kaydı yok</h3>
                     <p>Yeni bir arıza kaydı eklemek için + butonuna tıklayın</p>
                 </div>
@@ -961,7 +981,7 @@ async function loadArizalar() {
     } catch (error) {
         console.error('Arıza yükleme hatası:', error);
         arizaListesi.innerHTML = `
-            <div class="empty-state">
+            <div class="empty-state fade-in">
                 <h3>❌ Veriler yüklenirken hata oluştu</h3>
                 <p>${error.message}</p>
             </div>
@@ -974,8 +994,8 @@ function displayArizalar(arizalar) {
     const arizaListesi = document.getElementById('ariza-listesi');
     if (!arizaListesi) return;
     
-    arizaListesi.innerHTML = arizalar.map(ariza => `
-        <div class="ariza-item">
+    arizaListesi.innerHTML = arizalar.map((ariza, index) => `
+        <div class="ariza-item fade-in" style="animation-delay: ${index * 0.05}s">
             <div class="ariza-header">
                 <span class="ariza-id">#${ariza.id.substring(0, 8)}</span>
                 <span class="durum-badge durum-${ariza.durum}">${getDurumText(ariza.durum)}</span>
@@ -1007,10 +1027,30 @@ function updateStats(arizalar) {
     const devam = arizalar.filter(a => a.durum === 'devam-ediyor').length;
     const tamamlandi = arizalar.filter(a => a.durum === 'tamamlandi').length;
     
-    document.getElementById('stat-toplam').textContent = toplam;
-    document.getElementById('stat-beklemede').textContent = beklemede;
-    document.getElementById('stat-devam').textContent = devam;
-    document.getElementById('stat-tamamlandi').textContent = tamamlandi;
+    // Animasyonlu sayı güncelleme
+    animateValue('stat-toplam', 0, toplam, 500);
+    animateValue('stat-beklemede', 0, beklemede, 500);
+    animateValue('stat-devam', 0, devam, 500);
+    animateValue('stat-tamamlandi', 0, tamamlandi, 500);
+}
+
+// Sayı animasyonu
+function animateValue(id, start, end, duration) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+            current = end;
+            clearInterval(timer);
+        }
+        element.textContent = Math.round(current);
+    }, 16);
 }
 
 // Durum metni

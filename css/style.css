@@ -1284,3 +1284,97 @@ body.dark-mode .reminder-item.warning {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Skeleton Loader */
+.skeleton-loader {
+    display: grid;
+    gap: 15px;
+}
+
+.skeleton-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #e2e8f0;
+}
+
+body.dark-mode .skeleton-card {
+    background: #2d3748;
+    border-left-color: #4a5568;
+}
+
+.skeleton-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.skeleton-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.skeleton-line {
+    height: 16px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    border-radius: 4px;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+body.dark-mode .skeleton-line {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+}
+
+.skeleton-id {
+    width: 120px;
+}
+
+.skeleton-badge {
+    width: 100px;
+}
+
+.skeleton-short {
+    width: 60%;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Fade In Animation */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth transitions */
+.ariza-item {
+    opacity: 0;
+    animation: fadeIn 0.4s ease-in-out forwards;
+}
+
+.stat-card {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in-out forwards;
+}
