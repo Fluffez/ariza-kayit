@@ -57,8 +57,23 @@ const itemsPerPage = 50;
 
 // Müdürlükleri yükle
 async function loadMudurlukler() {
+    const list = document.getElementById('mudurluk-list');
+    
     try {
+        // Skeleton loader göster
+        if (list) {
+            list.innerHTML = Array(5).fill(0).map(() => `
+                <div class="item-card skeleton-card">
+                    <div class="skeleton-line" style="width: 60%; height: 20px;"></div>
+                </div>
+            `).join('');
+        }
+        
         mudurluklerData = await db.getMudurlukler();
+        
+        // Minimum 300ms bekle
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         console.log(`Toplam ${mudurluklerData.length} müdürlük yüklendi`);
         currentPageMudurluk = 1;
         displayMudurlukler();
@@ -118,8 +133,23 @@ window.changeMudurlukPage = function(page) {
 
 // Çalışanları yükle
 async function loadCalisanlar() {
+    const list = document.getElementById('calisan-list');
+    
     try {
+        // Skeleton loader göster
+        if (list) {
+            list.innerHTML = Array(5).fill(0).map(() => `
+                <div class="item-card skeleton-card">
+                    <div class="skeleton-line" style="width: 70%; height: 20px;"></div>
+                </div>
+            `).join('');
+        }
+        
         calisanlarData = await db.getCalisanlar();
+        
+        // Minimum 300ms bekle
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         console.log(`Toplam ${calisanlarData.length} çalışan yüklendi`);
         currentPageCalisan = 1;
         displayCalisanlar();
@@ -179,8 +209,23 @@ window.changeCalisanPage = function(page) {
 
 // Teknisyenleri yükle
 async function loadTeknisyenler() {
+    const list = document.getElementById('teknisyen-list');
+    
     try {
+        // Skeleton loader göster
+        if (list) {
+            list.innerHTML = Array(5).fill(0).map(() => `
+                <div class="item-card skeleton-card">
+                    <div class="skeleton-line" style="width: 65%; height: 20px;"></div>
+                </div>
+            `).join('');
+        }
+        
         teknisyenlerData = await db.getTeknisyenler();
+        
+        // Minimum 300ms bekle
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         console.log(`Toplam ${teknisyenlerData.length} teknisyen yüklendi`);
         currentPageTeknisyen = 1;
         displayTeknisyenler();
