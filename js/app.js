@@ -1237,3 +1237,187 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+// Arama ve Filtreleme
+let allArizalar = []; // Tüm arızaları sakla
+
+// Arızaları yükle (güncellenmiş)
+async function loadArizalarWithFilter() {
+    const arizaListesi = document.getElementById('ariza-listesi');
+    if (!arizaListesi) return;
+    
+    try {
+        // Skeleton loader göster
+        arizaListesi.innerHTML = `
+            <div class="skeleton-loader">
+                ${Array(3).fill(0).map(() => `
+                    <div class="skeleton-card">
+                        <div class="skeleton-header">
+                            <div class="skeleton-line skeleton-id"></div>
+                            <div class="skeleton-line skeleton-badge"></div>
+                        </div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line skeleton-short"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        const { data: arizalar, error } = await supabase
+            .from('arizalar')
+            .select('*')
+            .order('timestamp', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Minimum 500ms bekle
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        allArizalar = arizalar || [];
+        
+        if (allArizalar.length === 0) {
+            arizaListesi.innerHTML = `
+                <div class="empty-state fade-in">
+                    <h3>📋 Henüz arıza kaydı yok</h3>
+                    <p>Yeni bir arıza kaydı eklemek için + butonuna tıklayın</p>
+                </div>
+            `;
+            updateStats(allArizalar);
+            return;
+        }
+        
+        applyFilters();
+    } catch (error) {
+        console.error('Arıza yükleme hatası:', error);
+        arizaListesi.innerHTML = `
+            <div class="empty-state fade-in">
+                <h3>❌ Veriler yüklenirken hata oluştu</h3>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// Filtreleri uygula
+function applyFilters() {
+    const aramaInput = document.getElementById('arama-input');
+    const durumFiltre = document.getElementById('durum-filtre');
+    const tarihFiltre = document.getElementById('tarih-filtre');
+    
+    let filteredData = [...allArizalar];
+    
+    // Arama filtresi
+    if (aramaInput && aramaInput.value.trim()) {
+        const searchTerm = aramaInput.value.toLowerCase().trim();
+        filteredData = filteredData.filter(ariza => 
+            ariza.birim.toLowerCase().includes(searchTerm) ||
+            ariza.talep_eden.toLowerCase().includes(searchTerm) ||
+            ariza.cihaz_turu.toLowerCase().includes(searchTerm) ||
+            ariza.ariza_turu.toLowerCase().includes(searchTerm) ||
+            (ariza.aciklama && ariza.aciklama.toLowerCase().includes(searchTerm)) ||
+            (ariza.yapilan_isler && ariza.yapilan_isler.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    // Durum filtresi
+    if (durumFiltre && durumFiltre.value !== 'tumu') {
+        filteredData = filteredData.filter(ariza => ariza.durum === durumFiltre.value);
+    }
+    
+    // Tarih filtresi
+    if (tarihFiltre && tarihFiltre.value !== 'tumu') {
+        const now = Date.now();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        
+        filteredData = filteredData.filter(ariza => {
+            const arizaTime = ariza.timestamp;
+            
+            switch (tarihFiltre.value) {
+                case 'bugun':
+                    return now - arizaTime < oneDayMs;
+                case 'bu-hafta':
+                    return now - arizaTime < 7 * oneDayMs;
+                case 'bu-ay':
+                    return now - arizaTime < 30 * oneDayMs;
+                default:
+                    return true;
+            }
+        });
+    }
+    
+    // Sonuçları göster
+    if (filteredData.length === 0) {
+        document.getElementById('ariza-listesi').innerHTML = `
+            <div class="empty-state fade-in">
+                <h3>🔍 Sonuç bulunamadı</h3>
+                <p>Arama kriterlerinize uygun arıza kaydı bulunamadı</p>
+            </div>
+        `;
+    } else {
+        displayArizalar(filteredData);
+    }
+    
+    updateStats(filteredData);
+}
+
+// Event listener'ları ekle
+document.addEventListener('DOMContentLoaded', () => {
+    const aramaInput = document.getElementById('arama-input');
+    const durumFiltre = document.getElementById('durum-filtre');
+    const tarihFiltre = document.getElementById('tarih-filtre');
+    
+    if (aramaInput) {
+        aramaInput.addEventListener('input', applyFilters);
+    }
+    
+    if (durumFiltre) {
+        durumFiltre.addEventListener('change', applyFilters);
+    }
+    
+    if (tarihFiltre) {
+        tarihFiltre.addEventListener('change', applyFilters);
+    }
+});
+
+// loadArizalar'ı güncelle
+window.loadArizalar = loadArizalarWithFilter;
+
+
+// Dark Mode Toggle
+document.addEventListener('DOMContentLoaded', () => {
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const adminDarkModeToggle = document.getElementById('admin-dark-mode-toggle');
+    
+    // Sayfa yüklendiğinde dark mode durumunu kontrol et
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        if (darkModeToggle) darkModeToggle.textContent = '☀️';
+        if (adminDarkModeToggle) adminDarkModeToggle.textContent = '☀️';
+    }
+    
+    // Dark mode toggle fonksiyonu
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDark);
+        
+        // İkon değiştir
+        const icon = isDark ? '☀️' : '🌙';
+        if (darkModeToggle) darkModeToggle.textContent = icon;
+        if (adminDarkModeToggle) adminDarkModeToggle.textContent = icon;
+    }
+    
+    // Event listener'lar
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+    }
+    
+    if (adminDarkModeToggle) {
+        adminDarkModeToggle.addEventListener('click', toggleDarkMode);
+    }
+});
