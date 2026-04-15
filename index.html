@@ -367,11 +367,13 @@
                 <div id="excel-custom-dates" style="display: none;">
                     <div class="form-group">
                         <label>Başlangıç Tarihi</label>
-                        <input type="date" id="excel-start-date">
+                        <input type="date" id="excel-start-date" max="">
+                        <small style="color: #718096; font-size: 12px;">Opsiyonel - Boş bırakılabilir</small>
                     </div>
                     <div class="form-group">
                         <label>Bitiş Tarihi</label>
-                        <input type="date" id="excel-end-date">
+                        <input type="date" id="excel-end-date" max="">
+                        <small style="color: #718096; font-size: 12px;">Opsiyonel - Boş bırakılabilir</small>
                     </div>
                 </div>
                 
@@ -379,6 +381,7 @@
                     <p style="margin: 0; font-size: 14px; color: #4a5568;">
                         <strong id="excel-kayit-sayisi">0</strong> kayıt Excel'e aktarılacak
                     </p>
+                    <p id="excel-tarih-bilgi" style="margin: 5px 0 0 0; font-size: 12px; color: #718096; display: none;"></p>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; justify-content: flex-end; padding: 20px; border-top: 1px solid #e2e8f0;">

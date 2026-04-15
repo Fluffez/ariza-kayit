@@ -27,8 +27,30 @@ if (excelFilterCancel) {
     excelFilterCancel.addEventListener('click', closeExcelFilterModal);
 }
 
+// Modal dışına tıklanınca kapatma (opsiyonel - kullanıcı deneyimi için kapalı)
+// excelFilterModal?.addEventListener('click', (e) => {
+//     if (e.target === excelFilterModal) {
+//         closeExcelFilterModal();
+//     }
+// });
+
 if (excelFilterExport) {
     excelFilterExport.addEventListener('click', () => {
+        // Kayıt sayısı kontrolü
+        const filtered = getFilteredArizalarForExcel();
+        
+        if (filtered.length === 0) {
+            showToast('Seçilen filtrelere uygun kayıt bulunamadı', 'warning');
+            return;
+        }
+        
+        // Çok fazla kayıt uyarısı
+        if (filtered.length > 5000) {
+            if (!confirm(`${filtered.length} kayıt aktarılacak. Bu işlem biraz zaman alabilir. Devam etmek istiyor musunuz?`)) {
+                return;
+            }
+        }
+        
         exportToExcel();
         closeExcelFilterModal();
     });
@@ -51,9 +73,34 @@ if (excelDurumFilter) {
     excelDurumFilter.addEventListener('change', updateExcelKayitSayisi);
 }
 
-// Özel tarihler değiştiğinde kayıt sayısını güncelle
-document.getElementById('excel-start-date')?.addEventListener('change', updateExcelKayitSayisi);
-document.getElementById('excel-end-date')?.addEventListener('change', updateExcelKayitSayisi);
+// Özel tarihler değiştiğinde kayıt sayısını güncelle ve validasyon yap
+document.getElementById('excel-start-date')?.addEventListener('change', function() {
+    const endDateInput = document.getElementById('excel-end-date');
+    
+    // Başlangıç tarihi seçildiğinde, bitiş tarihi için min değer ayarla
+    if (this.value) {
+        endDateInput.min = this.value;
+    } else {
+        endDateInput.min = '';
+    }
+    
+    updateExcelKayitSayisi();
+});
+
+document.getElementById('excel-end-date')?.addEventListener('change', function() {
+    const startDateInput = document.getElementById('excel-start-date');
+    
+    // Bitiş tarihi seçildiğinde, başlangıç tarihi için max değer ayarla
+    if (this.value) {
+        startDateInput.max = this.value;
+    } else {
+        // Bugünün tarihini max olarak ayarla
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.max = today;
+    }
+    
+    updateExcelKayitSayisi();
+});
 
 function openExcelFilterModal() {
     if (!window.allArizalar || !allArizalar || allArizalar.length === 0) {
@@ -65,8 +112,16 @@ function openExcelFilterModal() {
     excelDurumFilter.value = 'tumu';
     excelTarihFilter.value = 'tumu';
     excelCustomDates.style.display = 'none';
+    
+    // Bugünün tarihini max olarak ayarla (gelecek tarih seçilemesin)
+    const today = new Date().toISOString().split('T')[0];
     document.getElementById('excel-start-date').value = '';
+    document.getElementById('excel-start-date').max = today;
     document.getElementById('excel-end-date').value = '';
+    document.getElementById('excel-end-date').max = today;
+    
+    // Tarih bilgisini gizle
+    document.getElementById('excel-tarih-bilgi').style.display = 'none';
     
     updateExcelKayitSayisi();
     excelFilterModal.classList.add('active');
@@ -79,6 +134,54 @@ function closeExcelFilterModal() {
 function updateExcelKayitSayisi() {
     const filtered = getFilteredArizalarForExcel();
     excelKayitSayisi.textContent = filtered.length;
+    
+    // Tarih bilgisi göster
+    const tarihBilgi = document.getElementById('excel-tarih-bilgi');
+    const tarihValue = excelTarihFilter.value;
+    
+    if (tarihValue === 'ozel') {
+        const startDate = document.getElementById('excel-start-date').value;
+        const endDate = document.getElementById('excel-end-date').value;
+        
+        if (startDate && endDate) {
+            tarihBilgi.textContent = `📅 ${formatDate(startDate)} - ${formatDate(endDate)}`;
+            tarihBilgi.style.display = 'block';
+        } else if (startDate) {
+            tarihBilgi.textContent = `📅 ${formatDate(startDate)} tarihinden sonraki kayıtlar`;
+            tarihBilgi.style.display = 'block';
+        } else if (endDate) {
+            tarihBilgi.textContent = `📅 ${formatDate(endDate)} tarihine kadar olan kayıtlar`;
+            tarihBilgi.style.display = 'block';
+        } else {
+            tarihBilgi.style.display = 'none';
+        }
+    } else if (tarihValue !== 'tumu') {
+        const tarihMetinleri = {
+            'bugun': '📅 Bugünkü kayıtlar',
+            'bu-hafta': '📅 Bu haftaki kayıtlar',
+            'bu-ay': '📅 Bu ayki kayıtlar',
+            'son-3-ay': '📅 Son 3 aydaki kayıtlar',
+            'bu-yil': '📅 Bu yılki kayıtlar'
+        };
+        tarihBilgi.textContent = tarihMetinleri[tarihValue] || '';
+        tarihBilgi.style.display = 'block';
+    } else {
+        tarihBilgi.style.display = 'none';
+    }
+    
+    // Kayıt sayısı uyarısı
+    if (filtered.length === 0) {
+        excelKayitSayisi.style.color = '#e53e3e';
+    } else if (filtered.length > 1000) {
+        excelKayitSayisi.style.color = '#f6ad55';
+    } else {
+        excelKayitSayisi.style.color = '#48bb78';
+    }
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function getFilteredArizalarForExcel() {
