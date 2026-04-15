@@ -229,7 +229,7 @@ function generateCSRFToken() {
 // Session Management
 class SessionManager {
     constructor() {
-        this.sessionTimeout = 60000; // 1 dakika
+        this.sessionTimeout = 30 * 60 * 1000; // 30 dakika (30 dakika * 60 saniye * 1000 milisaniye)
         this.lastActivity = Date.now();
         this.sessionToken = null;
         this.startActivityMonitor();
@@ -243,10 +243,10 @@ class SessionManager {
             }, { passive: true });
         });
 
-        // Her dakika session kontrolü yap
+        // Her 5 dakikada bir session kontrolü yap (daha az sıklıkta kontrol)
         setInterval(() => {
             this.checkSession();
-        }, 60000);
+        }, 5 * 60 * 1000); // 5 dakika
     }
 
     updateActivity() {

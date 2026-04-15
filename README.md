@@ -17,7 +17,7 @@ Modern, güvenli ve kullanıcı dostu arıza takip sistemi. Supabase (PostgreSQL
 - 🔒 Rate limiting (DDoS koruması)
 - 🔒 Başarısız giriş takibi
 - 🔒 XSS ve SQL injection koruması
-- 🔒 Session yönetimi (1 dakika timeout)
+- 🔒 Session yönetimi (30 dakika timeout)
 - 🔒 CSRF token desteği
 - 🔒 Browser fingerprinting
 

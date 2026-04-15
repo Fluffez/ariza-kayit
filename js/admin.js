@@ -9,13 +9,7 @@ let ayarlarData = {};
 
 // Sayfa yüklendiğinde
 window.addEventListener('DOMContentLoaded', () => {
-    // Admin kontrolü
-    const isAdmin = localStorage.getItem('isAdmin');
-    if (isAdmin !== 'true') {
-        // Admin değilse ana sayfaya yönlendir
-        window.location.href = 'index.html';
-        return;
-    }
+    // Admin kontrolü admin-auth.js tarafından yapılıyor
     
     // Dark mode'u yükle
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -391,12 +385,8 @@ function setupEventListeners() {
     document.getElementById('restore-file')?.addEventListener('change', restoreData);
     document.getElementById('delete-all-btn')?.addEventListener('click', deleteAllData);
     
-    // Logout
-    document.getElementById('admin-logout-btn')?.addEventListener('click', () => {
-        localStorage.removeItem('rememberedUser');
-        localStorage.removeItem('isAdmin');
-        window.location.href = 'index.html';
-    });
+    // Logout - admin-auth.js tarafından yönetiliyor
+    // Burada duplicate event listener eklemeyin
     
     // Modal kapat
     document.getElementById('admin-close-btn')?.addEventListener('click', closeModal);
