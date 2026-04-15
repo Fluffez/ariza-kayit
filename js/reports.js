@@ -56,7 +56,6 @@ function generateReports() {
     
     generateCharts(tumArizalar);
     generateStats(tumArizalar);
-    generateReminders(tumArizalar);
 }
 
 function generateCharts(tumArizalar) {
@@ -88,27 +87,12 @@ function generateCharts(tumArizalar) {
         Object.values(durumData)
     );
     
-    // Aylık trend
-    const monthlyData = {};
-    tumArizalar.forEach(ariza => {
-        const date = new Date(ariza.timestamp);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
-    });
-    
-    const sortedMonths = Object.keys(monthlyData).sort();
-    const last6Months = sortedMonths.slice(-6);
-    
-    createLineChart('trend-chart',
-        last6Months,
-        last6Months.map(m => monthlyData[m]),
-        'Son 6 Ay Arıza Trendi'
-    );
-    
-    // Cihaz türü dağılımı
+    // Cihaz türü dağılımı - Düzeltildi
     const cihazData = {};
     tumArizalar.forEach(ariza => {
-        cihazData[ariza.cihazTuru] = (cihazData[ariza.cihazTuru] || 0) + 1;
+        // cihaz_turu veya cihazTuru olabilir (Supabase snake_case kullanıyor)
+        const cihazTuru = ariza.cihaz_turu || ariza.cihazTuru || 'Belirtilmemiş';
+        cihazData[cihazTuru] = (cihazData[cihazTuru] || 0) + 1;
     });
     
     createDoughnutChart('cihaz-chart',
@@ -182,47 +166,6 @@ function createPieChart(canvasId, labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: true
-        }
-    });
-}
-
-function createLineChart(canvasId, labels, data, title) {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
-    
-    if (charts[canvasId]) {
-        charts[canvasId].destroy();
-    }
-    
-    charts[canvasId] = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Arıza Sayısı',
-                data: data,
-                borderColor: 'rgba(102, 126, 234, 1)',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
         }
     });
 }

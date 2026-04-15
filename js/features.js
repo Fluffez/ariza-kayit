@@ -4,21 +4,161 @@
 
 // Excel Export
 const excelBtn = document.getElementById('excel-export');
+const excelFilterModal = document.getElementById('excel-filter-modal');
+const excelFilterClose = document.getElementById('excel-filter-close');
+const excelFilterCancel = document.getElementById('excel-filter-cancel');
+const excelFilterExport = document.getElementById('excel-filter-export');
+const excelDurumFilter = document.getElementById('excel-durum-filter');
+const excelTarihFilter = document.getElementById('excel-tarih-filter');
+const excelCustomDates = document.getElementById('excel-custom-dates');
+const excelKayitSayisi = document.getElementById('excel-kayit-sayisi');
+
 if (excelBtn) {
     excelBtn.addEventListener('click', () => {
-        exportToExcel();
+        openExcelFilterModal();
     });
 }
 
-function exportToExcel() {
-    // allArizalar app.js'den geliyor
+if (excelFilterClose) {
+    excelFilterClose.addEventListener('click', closeExcelFilterModal);
+}
+
+if (excelFilterCancel) {
+    excelFilterCancel.addEventListener('click', closeExcelFilterModal);
+}
+
+if (excelFilterExport) {
+    excelFilterExport.addEventListener('click', () => {
+        exportToExcel();
+        closeExcelFilterModal();
+    });
+}
+
+// Tarih filtresi değiştiğinde özel tarih alanlarını göster/gizle
+if (excelTarihFilter) {
+    excelTarihFilter.addEventListener('change', () => {
+        if (excelTarihFilter.value === 'ozel') {
+            excelCustomDates.style.display = 'block';
+        } else {
+            excelCustomDates.style.display = 'none';
+        }
+        updateExcelKayitSayisi();
+    });
+}
+
+// Durum filtresi değiştiğinde kayıt sayısını güncelle
+if (excelDurumFilter) {
+    excelDurumFilter.addEventListener('change', updateExcelKayitSayisi);
+}
+
+// Özel tarihler değiştiğinde kayıt sayısını güncelle
+document.getElementById('excel-start-date')?.addEventListener('change', updateExcelKayitSayisi);
+document.getElementById('excel-end-date')?.addEventListener('change', updateExcelKayitSayisi);
+
+function openExcelFilterModal() {
     if (!window.allArizalar || !allArizalar || allArizalar.length === 0) {
         showToast('Dışa aktarılacak veri yok', 'warning');
         return;
     }
     
+    // Filtreleri sıfırla
+    excelDurumFilter.value = 'tumu';
+    excelTarihFilter.value = 'tumu';
+    excelCustomDates.style.display = 'none';
+    document.getElementById('excel-start-date').value = '';
+    document.getElementById('excel-end-date').value = '';
+    
+    updateExcelKayitSayisi();
+    excelFilterModal.classList.add('active');
+}
+
+function closeExcelFilterModal() {
+    excelFilterModal.classList.remove('active');
+}
+
+function updateExcelKayitSayisi() {
+    const filtered = getFilteredArizalarForExcel();
+    excelKayitSayisi.textContent = filtered.length;
+}
+
+function getFilteredArizalarForExcel() {
+    let filtered = [...allArizalar];
+    
+    // Durum filtresi
+    const durumValue = excelDurumFilter.value;
+    if (durumValue !== 'tumu') {
+        filtered = filtered.filter(a => a.durum === durumValue);
+    }
+    
+    // Tarih filtresi
+    const tarihValue = excelTarihFilter.value;
+    const now = new Date();
+    
+    if (tarihValue !== 'tumu') {
+        filtered = filtered.filter(ariza => {
+            const arizaTarih = new Date(ariza.timestamp);
+            
+            switch (tarihValue) {
+                case 'bugun':
+                    return arizaTarih.toDateString() === now.toDateString();
+                    
+                case 'bu-hafta':
+                    const haftaBasi = new Date(now);
+                    haftaBasi.setDate(now.getDate() - now.getDay());
+                    haftaBasi.setHours(0, 0, 0, 0);
+                    return arizaTarih >= haftaBasi;
+                    
+                case 'bu-ay':
+                    return arizaTarih.getMonth() === now.getMonth() && 
+                           arizaTarih.getFullYear() === now.getFullYear();
+                    
+                case 'son-3-ay':
+                    const ucAyOnce = new Date(now);
+                    ucAyOnce.setMonth(now.getMonth() - 3);
+                    return arizaTarih >= ucAyOnce;
+                    
+                case 'bu-yil':
+                    return arizaTarih.getFullYear() === now.getFullYear();
+                    
+                case 'ozel':
+                    const startDate = document.getElementById('excel-start-date').value;
+                    const endDate = document.getElementById('excel-end-date').value;
+                    
+                    if (startDate && endDate) {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        return arizaTarih >= start && arizaTarih <= end;
+                    } else if (startDate) {
+                        const start = new Date(startDate);
+                        return arizaTarih >= start;
+                    } else if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        return arizaTarih <= end;
+                    }
+                    return true;
+                    
+                default:
+                    return true;
+            }
+        });
+    }
+    
+    return filtered;
+}
+
+function exportToExcel() {
+    const filtered = getFilteredArizalarForExcel();
+    
+    if (filtered.length === 0) {
+        showToast('Seçilen filtrelere uygun veri yok', 'warning');
+        return;
+    }
+    
     try {
-        const data = allArizalar.map(ariza => ({
+        // Düzgün sütunlar halinde veri hazırla
+        const data = filtered.map(ariza => ({
             'ID': ariza.id ? ariza.id.substring(0, 8) : 'N/A',
             'Müdürlük': ariza.birim || '',
             'Cihaz Türü': ariza.cihaz_turu || '',
@@ -31,14 +171,36 @@ function exportToExcel() {
             'Tarih': ariza.tarih || new Date(ariza.timestamp).toLocaleDateString('tr-TR')
         }));
         
+        // Worksheet oluştur
         const ws = XLSX.utils.json_to_sheet(data);
+        
+        // Sütun genişliklerini ayarla
+        const colWidths = [
+            { wch: 10 },  // ID
+            { wch: 30 },  // Müdürlük
+            { wch: 15 },  // Cihaz Türü
+            { wch: 15 },  // Arıza Türü
+            { wch: 25 },  // Talep Eden
+            { wch: 40 },  // Arıza Açıklaması
+            { wch: 40 },  // Yapılan İşler
+            { wch: 20 },  // Atanan Kişi
+            { wch: 15 },  // Durum
+            { wch: 12 }   // Tarih
+        ];
+        ws['!cols'] = colWidths;
+        
+        // Workbook oluştur
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Arıza Kayıtları');
         
+        // Dosya adı oluştur
         const tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
-        XLSX.writeFile(wb, `ariza-kayitlari-${tarih}.xlsx`);
+        const durumText = excelDurumFilter.value !== 'tumu' ? `-${excelDurumFilter.value}` : '';
+        const tarihText = excelTarihFilter.value !== 'tumu' ? `-${excelTarihFilter.value}` : '';
         
-        showToast('Excel dosyası indirildi', 'success');
+        XLSX.writeFile(wb, `ariza-kayitlari${durumText}${tarihText}-${tarih}.xlsx`);
+        
+        showToast(`${filtered.length} kayıt Excel'e aktarıldı`, 'success');
         if (typeof playSound === 'function') playSound('success');
     } catch (error) {
         console.error('Excel export hatası:', error);

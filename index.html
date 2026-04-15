@@ -206,7 +206,6 @@
                     <div class="report-tabs">
                         <button class="tab-btn active" data-tab="charts">Grafikler</button>
                         <button class="tab-btn" data-tab="stats">Detaylı İstatistikler</button>
-                        <button class="tab-btn" data-tab="reminders">Hatırlatıcılar</button>
                     </div>
 
                     <div class="tab-content active" id="charts-tab">
@@ -218,10 +217,6 @@
                             <div class="chart-container">
                                 <h4>Durum Dağılımı</h4>
                                 <canvas id="durum-chart"></canvas>
-                            </div>
-                            <div class="chart-container">
-                                <h4>Aylık Arıza Trendi</h4>
-                                <canvas id="trend-chart"></canvas>
                             </div>
                             <div class="chart-container">
                                 <h4>Cihaz Türü Dağılımı</h4>
@@ -250,10 +245,6 @@
                             </div>
                         </div>
                         <div id="top-mudurlukler" class="top-list"></div>
-                    </div>
-
-                    <div class="tab-content" id="reminders-tab">
-                        <div id="reminders-list"></div>
                     </div>
                 </div>
             </div>
@@ -339,6 +330,61 @@
 
                 <button type="submit" class="btn-primary">Kaydet</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Excel Export Filter Modal -->
+    <div id="excel-filter-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>📥 Excel'e Aktar</h3>
+                <button id="excel-filter-close" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="form-group">
+                    <label>Durum Filtresi</label>
+                    <select id="excel-durum-filter">
+                        <option value="tumu">Tümü</option>
+                        <option value="beklemede">Beklemede</option>
+                        <option value="devam-ediyor">Devam Ediyor</option>
+                        <option value="tamamlandi">Tamamlandı</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tarih Aralığı</label>
+                    <select id="excel-tarih-filter">
+                        <option value="tumu">Tüm Zamanlar</option>
+                        <option value="bugun">Bugün</option>
+                        <option value="bu-hafta">Bu Hafta</option>
+                        <option value="bu-ay">Bu Ay</option>
+                        <option value="son-3-ay">Son 3 Ay</option>
+                        <option value="bu-yil">Bu Yıl</option>
+                        <option value="ozel">Özel Tarih Aralığı</option>
+                    </select>
+                </div>
+                
+                <div id="excel-custom-dates" style="display: none;">
+                    <div class="form-group">
+                        <label>Başlangıç Tarihi</label>
+                        <input type="date" id="excel-start-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Bitiş Tarihi</label>
+                        <input type="date" id="excel-end-date">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f7fafc; border-radius: 8px;">
+                    <p style="margin: 0; font-size: 14px; color: #4a5568;">
+                        <strong id="excel-kayit-sayisi">0</strong> kayıt Excel'e aktarılacak
+                    </p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; padding: 20px; border-top: 1px solid #e2e8f0;">
+                <button id="excel-filter-cancel" class="btn-secondary">İptal</button>
+                <button id="excel-filter-export" class="btn-primary">📥 İndir</button>
+            </div>
         </div>
     </div>
 
