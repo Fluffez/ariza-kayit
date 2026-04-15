@@ -219,12 +219,12 @@ body.dark-mode .checkbox-group label {
 }
 
 .password-input input {
-    padding-right: 90px;
+    padding-right: 50px;
 }
 
 .caps-lock-warning {
     position: absolute;
-    right: 50px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
