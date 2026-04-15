@@ -116,11 +116,15 @@ function initializeCapsLockDetection() {
     if (!passwordInput || !capsLockWarning) return;
     
     let isPasswordFocused = false;
+    let capsLockState = false;
     
     // Caps Lock kontrolü
     function checkCapsLock(event) {
-        // Sadece şifre input'una odaklanıldığında göster
-        if (isPasswordFocused && event.getModifierState && event.getModifierState('CapsLock')) {
+        if (event && event.getModifierState) {
+            capsLockState = event.getModifierState('CapsLock');
+        }
+        
+        if (isPasswordFocused && capsLockState) {
             capsLockWarning.style.display = 'flex';
         } else {
             capsLockWarning.style.display = 'none';
@@ -130,6 +134,10 @@ function initializeCapsLockDetection() {
     // Şifre input'una focus olduğunda
     passwordInput.addEventListener('focus', (event) => {
         isPasswordFocused = true;
+        // Focus olduğunda kontrol et
+        if (event.getModifierState) {
+            capsLockState = event.getModifierState('CapsLock');
+        }
         checkCapsLock(event);
     });
     
@@ -137,6 +145,20 @@ function initializeCapsLockDetection() {
     passwordInput.addEventListener('blur', () => {
         isPasswordFocused = false;
         capsLockWarning.style.display = 'none';
+    });
+    
+    // Mouse ile tıklandığında da kontrol et
+    passwordInput.addEventListener('mousedown', (event) => {
+        if (event.getModifierState) {
+            capsLockState = event.getModifierState('CapsLock');
+        }
+    });
+    
+    passwordInput.addEventListener('click', (event) => {
+        if (event.getModifierState) {
+            capsLockState = event.getModifierState('CapsLock');
+        }
+        checkCapsLock(event);
     });
     
     // Şifre input'unda tuş basıldığında kontrol et
