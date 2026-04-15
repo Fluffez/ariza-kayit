@@ -412,6 +412,13 @@ async function addMudurluk() {
             return;
         }
         
+        // Duplicate kontrolü
+        const exists = mudurluklerData.some(m => m.name.toLowerCase() === name.toLowerCase());
+        if (exists) {
+            showToast('Bu müdürlük zaten mevcut', 'warning');
+            return;
+        }
+        
         try {
             await db.addMudurluk(name);
             showToast('Müdürlük eklendi', 'success');
@@ -455,15 +462,19 @@ window.deleteMudurluk = async function(id, name) {
     // Escape edilmiş ismi geri çevir
     const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
     
-    if (confirm(`"${decodedName}" müdürlüğünü silmek istediğinizden emin misiniz?`)) {
-        try {
-            await db.deleteMudurluk(id);
-            showToast('Müdürlük silindi', 'success');
-            loadMudurlukler();
-        } catch (error) {
-            showToast('Hata: ' + error.message, 'error');
+    showConfirm(
+        'Müdürlük Sil',
+        `"${decodedName}" müdürlüğünü silmek istediğinizden emin misiniz?`,
+        async () => {
+            try {
+                await db.deleteMudurluk(id);
+                showToast('Müdürlük silindi', 'success');
+                loadMudurlukler();
+            } catch (error) {
+                showToast('Hata: ' + error.message, 'error');
+            }
         }
-    }
+    );
 };
 
 // CRUD İşlemleri - Çalışan
@@ -477,6 +488,13 @@ async function addCalisan() {
         const name = document.getElementById('modal-input').value.trim();
         if (!name) {
             showToast('Çalışan adı boş olamaz', 'error');
+            return;
+        }
+        
+        // Duplicate kontrolü
+        const exists = calisanlarData.some(c => c.name.toLowerCase() === name.toLowerCase());
+        if (exists) {
+            showToast('Bu çalışan zaten mevcut', 'warning');
             return;
         }
         
@@ -523,15 +541,19 @@ window.deleteCalisan = async function(id, name) {
     // Escape edilmiş ismi geri çevir
     const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
     
-    if (confirm(`"${decodedName}" çalışanını silmek istediğinizden emin misiniz?`)) {
-        try {
-            await db.deleteCalisan(id);
-            showToast('Çalışan silindi', 'success');
-            loadCalisanlar();
-        } catch (error) {
-            showToast('Hata: ' + error.message, 'error');
+    showConfirm(
+        'Çalışan Sil',
+        `"${decodedName}" çalışanını silmek istediğinizden emin misiniz?`,
+        async () => {
+            try {
+                await db.deleteCalisan(id);
+                showToast('Çalışan silindi', 'success');
+                loadCalisanlar();
+            } catch (error) {
+                showToast('Hata: ' + error.message, 'error');
+            }
         }
-    }
+    );
 };
 
 // CRUD İşlemleri - Teknisyen
@@ -545,6 +567,13 @@ async function addTeknisyen() {
         const name = document.getElementById('modal-input').value.trim();
         if (!name) {
             showToast('Teknisyen adı boş olamaz', 'error');
+            return;
+        }
+        
+        // Duplicate kontrolü
+        const exists = teknisyenlerData.some(t => t.name.toLowerCase() === name.toLowerCase());
+        if (exists) {
+            showToast('Bu teknisyen zaten mevcut', 'warning');
             return;
         }
         
@@ -591,15 +620,19 @@ window.deleteTeknisyen = async function(id, name) {
     // Escape edilmiş ismi geri çevir
     const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
     
-    if (confirm(`"${decodedName}" teknisyenini silmek istediğinizden emin misiniz?`)) {
-        try {
-            await db.deleteTeknisyen(id);
-            showToast('Teknisyen silindi', 'success');
-            loadTeknisyenler();
-        } catch (error) {
-            showToast('Hata: ' + error.message, 'error');
+    showConfirm(
+        'Teknisyen Sil',
+        `"${decodedName}" teknisyenini silmek istediğinizden emin misiniz?`,
+        async () => {
+            try {
+                await db.deleteTeknisyen(id);
+                showToast('Teknisyen silindi', 'success');
+                loadTeknisyenler();
+            } catch (error) {
+                showToast('Hata: ' + error.message, 'error');
+            }
         }
-    }
+    );
 };
 
 // CRUD İşlemleri - Kullanıcı (Şimdilik devre dışı)
@@ -718,4 +751,45 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+
+// Confirm Modal
+let confirmCallback = null;
+
+function showConfirm(title, message, callback) {
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmTitle = document.getElementById('confirm-title');
+    const confirmMessage = document.getElementById('confirm-message');
+    const confirmOkBtn = document.getElementById('confirm-ok-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+    const confirmCloseBtn = document.getElementById('confirm-close-btn');
+    
+    confirmTitle.textContent = title;
+    confirmMessage.textContent = message;
+    confirmCallback = callback;
+    
+    confirmModal.classList.add('active');
+    
+    // Event listeners (remove old ones first)
+    const newOkBtn = confirmOkBtn.cloneNode(true);
+    const newCancelBtn = confirmCancelBtn.cloneNode(true);
+    const newCloseBtn = confirmCloseBtn.cloneNode(true);
+    
+    confirmOkBtn.parentNode.replaceChild(newOkBtn, confirmOkBtn);
+    confirmCancelBtn.parentNode.replaceChild(newCancelBtn, confirmCancelBtn);
+    confirmCloseBtn.parentNode.replaceChild(newCloseBtn, confirmCloseBtn);
+    
+    newOkBtn.addEventListener('click', () => {
+        if (confirmCallback) confirmCallback();
+        closeConfirm();
+    });
+    
+    newCancelBtn.addEventListener('click', closeConfirm);
+    newCloseBtn.addEventListener('click', closeConfirm);
+}
+
+function closeConfirm() {
+    const confirmModal = document.getElementById('confirm-modal');
+    confirmModal.classList.remove('active');
+    confirmCallback = null;
 }

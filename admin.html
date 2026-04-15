@@ -183,6 +183,23 @@
         </div>
     </div>
 
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3 id="confirm-title">⚠️ Onay</h3>
+                <button id="confirm-close-btn" class="close-btn">&times;</button>
+            </div>
+            <div style="padding: 20px;">
+                <p id="confirm-message" style="font-size: 16px; line-height: 1.6; color: #4a5568;"></p>
+            </div>
+            <div style="display: flex; gap: 10px; padding: 0 20px 20px; justify-content: flex-end;">
+                <button id="confirm-cancel-btn" class="btn-secondary">İptal</button>
+                <button id="confirm-ok-btn" class="btn-danger">Sil</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
