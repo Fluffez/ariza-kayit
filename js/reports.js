@@ -90,10 +90,19 @@ function generateCharts(tumArizalar) {
     // Cihaz türü dağılımı - Düzeltildi
     const cihazData = {};
     tumArizalar.forEach(ariza => {
-        // cihaz_turu veya cihazTuru olabilir (Supabase snake_case kullanıyor)
-        const cihazTuru = ariza.cihaz_turu || ariza.cihazTuru || 'Belirtilmemiş';
+        // Supabase'den gelen field name: cihaz_turu (snake_case)
+        let cihazTuru = ariza.cihaz_turu || 'Belirtilmemiş';
+        
+        // Boş string kontrolü
+        if (!cihazTuru || cihazTuru.trim() === '') {
+            cihazTuru = 'Belirtilmemiş';
+        }
+        
         cihazData[cihazTuru] = (cihazData[cihazTuru] || 0) + 1;
     });
+    
+    // Debug için
+    console.log('Cihaz türü dağılımı:', cihazData);
     
     createDoughnutChart('cihaz-chart',
         Object.keys(cihazData),
