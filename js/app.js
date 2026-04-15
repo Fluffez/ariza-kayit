@@ -377,28 +377,34 @@ const talepSuggestions = document.getElementById('talep-suggestions');
 
 let currentFocus = -1;
 
-// Müdürlük autocomplete
+// Müdürlük autocomplete - Input event
 birimInput.addEventListener('input', function() {
-    const value = this.value.toLowerCase();
+    showBirimSuggestions(this.value);
+});
+
+// Müdürlük autocomplete - Focus event (tıklayınca direkt göster)
+birimInput.addEventListener('focus', function() {
+    showBirimSuggestions(this.value);
+});
+
+function showBirimSuggestions(value) {
+    value = value.toLowerCase();
     currentFocus = -1;
     
     // Kırmızılığı kaldır
     if (value) {
-        this.classList.remove('error');
+        birimInput.classList.remove('error');
         document.getElementById('birim-error').textContent = '';
     }
     
-    if (!value) {
-        birimSuggestions.classList.remove('active');
-        return;
-    }
-    
-    const filtered = mudurlukler.filter(m => 
-        m.toLowerCase().includes(value)
-    );
+    // Boş ise tüm listeyi göster
+    const filtered = value ? 
+        mudurlukler.filter(m => m.toLowerCase().includes(value)) :
+        mudurlukler;
     
     if (filtered.length > 0) {
-        birimSuggestions.innerHTML = filtered.map(m => 
+        // İlk 20 sonucu göster (performans için)
+        birimSuggestions.innerHTML = filtered.slice(0, 20).map(m => 
             `<div class="suggestion-item" data-value="${m}">${m}</div>`
         ).join('');
         birimSuggestions.classList.add('active');
@@ -415,30 +421,36 @@ birimInput.addEventListener('input', function() {
     } else {
         birimSuggestions.classList.remove('active');
     }
+}
+
+// Talep eden autocomplete - Input event
+talepInput.addEventListener('input', function() {
+    showTalepSuggestions(this.value);
 });
 
-// Talep eden autocomplete (çalışanlar listesinden)
-talepInput.addEventListener('input', function() {
-    const value = this.value.toLowerCase();
+// Talep eden autocomplete - Focus event (tıklayınca direkt göster)
+talepInput.addEventListener('focus', function() {
+    showTalepSuggestions(this.value);
+});
+
+function showTalepSuggestions(value) {
+    value = value.toLowerCase();
     currentFocus = -1;
     
     // Kırmızılığı kaldır
     if (value) {
-        this.classList.remove('error');
+        talepInput.classList.remove('error');
         document.getElementById('talep-error').textContent = '';
     }
     
-    if (!value || value.length < 1) {
-        talepSuggestions.classList.remove('active');
-        return;
-    }
-    
-    const filtered = calisanlar.filter(c => 
-        c.toLowerCase().includes(value)
-    );
+    // Boş ise tüm listeyi göster
+    const filtered = value ?
+        calisanlar.filter(c => c.toLowerCase().includes(value)) :
+        calisanlar;
     
     if (filtered.length > 0) {
-        talepSuggestions.innerHTML = filtered.slice(0, 10).map(c => 
+        // İlk 20 sonucu göster (performans için)
+        talepSuggestions.innerHTML = filtered.slice(0, 20).map(c => 
             `<div class="suggestion-item" data-value="${c}">${c}</div>`
         ).join('');
         talepSuggestions.classList.add('active');
@@ -455,7 +467,7 @@ talepInput.addEventListener('input', function() {
     } else {
         talepSuggestions.classList.remove('active');
     }
-});
+}
 
 // Keyboard navigation
 function handleKeyDown(e, input, suggestions) {

@@ -189,35 +189,49 @@ if (typeof db !== 'undefined') {
 }
 
 if (atananInput) {
+    // Input event
     atananInput.addEventListener('input', function() {
-        const value = this.value.toLowerCase();
-        
-        if (!value) {
-            atananSuggestions.classList.remove('active');
-            return;
-        }
-        
-        const filtered = teknisyenler.filter(t => 
-            t.toLowerCase().includes(value)
-        );
-        
-        if (filtered.length > 0) {
-            atananSuggestions.innerHTML = filtered.map(t => 
-                `<div class="suggestion-item" data-value="${t}">${t}</div>`
-            ).join('');
-            atananSuggestions.classList.add('active');
-            
-            atananSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    atananInput.value = this.dataset.value;
-                    atananSuggestions.classList.remove('active');
-                });
-            });
-        } else {
-            atananSuggestions.classList.remove('active');
-        }
+        showAtananSuggestions(this.value);
+    });
+    
+    // Focus event (tıklayınca direkt göster)
+    atananInput.addEventListener('focus', function() {
+        showAtananSuggestions(this.value);
     });
 }
+
+function showAtananSuggestions(value) {
+    value = value.toLowerCase();
+    
+    // Boş ise tüm listeyi göster
+    const filtered = value ?
+        teknisyenler.filter(t => t.toLowerCase().includes(value)) :
+        teknisyenler;
+    
+    if (filtered.length > 0) {
+        atananSuggestions.innerHTML = filtered.map(t => 
+            `<div class="suggestion-item" data-value="${t}">${t}</div>`
+        ).join('');
+        atananSuggestions.classList.add('active');
+        
+        atananSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                atananInput.value = this.dataset.value;
+                atananSuggestions.classList.remove('active');
+            });
+        });
+    } else {
+        atananSuggestions.classList.remove('active');
+    }
+}
+
+// Click outside to close atanan suggestions
+document.addEventListener('click', (e) => {
+    if (atananInput && atananSuggestions && 
+        !atananInput.contains(e.target) && !atananSuggestions.contains(e.target)) {
+        atananSuggestions.classList.remove('active');
+    }
+});
 
 // Hatırlatıcılar - Uzun süre bekleyen arızalar için
 function hatirlaticiKontrol() {

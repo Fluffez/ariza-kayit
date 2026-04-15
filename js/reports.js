@@ -46,16 +46,20 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 function generateReports() {
+    // allArizalar global değişkenini kullan
+    const tumArizalar = window.allArizalar || [];
+    
     if (!tumArizalar || tumArizalar.length === 0) {
+        console.warn('Henüz arıza verisi yok');
         return;
     }
     
-    generateCharts();
-    generateStats();
-    generateReminders();
+    generateCharts(tumArizalar);
+    generateStats(tumArizalar);
+    generateReminders(tumArizalar);
 }
 
-function generateCharts() {
+function generateCharts(tumArizalar) {
     // Müdürlük dağılımı
     const mudurlukData = {};
     tumArizalar.forEach(ariza => {
@@ -261,7 +265,7 @@ function updateCharts() {
     });
 }
 
-function generateStats() {
+function generateStats(tumArizalar) {
     // Ortalama çözüm süresi
     const tamamlananlar = tumArizalar.filter(a => a.durum === 'tamamlandi');
     let toplamSure = 0;
@@ -324,7 +328,7 @@ function generateStats() {
     document.getElementById('top-mudurlukler').innerHTML = topListHtml;
 }
 
-function generateReminders() {
+function generateReminders(tumArizalar) {
     const simdi = Date.now();
     const birGun = 24 * 60 * 60 * 1000;
     
