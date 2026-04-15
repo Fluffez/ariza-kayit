@@ -281,37 +281,84 @@ function exportToExcel() {
     }
     
     try {
-        // Düzgün sütunlar halinde veri hazırla
-        const data = filtered.map(ariza => ({
-            'ID': ariza.id ? ariza.id.substring(0, 8) : 'N/A',
-            'Müdürlük': ariza.birim || '',
-            'Cihaz Türü': ariza.cihaz_turu || '',
-            'Arıza Türü': ariza.ariza_turu || '',
-            'Talep Eden': ariza.talep_eden || '',
-            'Arıza Açıklaması': ariza.aciklama || '',
-            'Yapılan İşler': ariza.yapilan_isler || '',
-            'Atanan Kişi': ariza.atanan_kisi || '',
-            'Durum': getDurumText(ariza.durum || 'beklemede'),
-            'Tarih': ariza.tarih || new Date(ariza.timestamp).toLocaleDateString('tr-TR')
-        }));
+        // Düzgün sütunlar halinde veri hazırla - Uzun metinleri kısalt
+        const data = filtered.map(ariza => {
+            // Uzun metinleri kısaltma fonksiyonu
+            const truncate = (text, maxLength) => {
+                if (!text) return '';
+                text = String(text);
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            };
+            
+            return {
+                'ID': ariza.id ? ariza.id.substring(0, 8) : 'N/A',
+                'Müdürlük': truncate(ariza.birim, 50),
+                'Cihaz Türü': truncate(ariza.cihaz_turu, 30),
+                'Arıza Türü': truncate(ariza.ariza_turu, 30),
+                'Talep Eden': truncate(ariza.talep_eden, 40),
+                'Arıza Açıklaması': truncate(ariza.aciklama, 100),
+                'Yapılan İşler': truncate(ariza.yapilan_isler, 100),
+                'Atanan Kişi': truncate(ariza.atanan_kisi, 40),
+                'Durum': getDurumText(ariza.durum || 'beklemede'),
+                'Tarih': ariza.tarih || new Date(ariza.timestamp).toLocaleDateString('tr-TR')
+            };
+        });
         
         // Worksheet oluştur
         const ws = XLSX.utils.json_to_sheet(data);
         
-        // Sütun genişliklerini ayarla
+        // Sütun genişliklerini ayarla (karaktere göre)
         const colWidths = [
-            { wch: 10 },  // ID
-            { wch: 30 },  // Müdürlük
-            { wch: 15 },  // Cihaz Türü
-            { wch: 15 },  // Arıza Türü
-            { wch: 25 },  // Talep Eden
-            { wch: 40 },  // Arıza Açıklaması
-            { wch: 40 },  // Yapılan İşler
-            { wch: 20 },  // Atanan Kişi
-            { wch: 15 },  // Durum
-            { wch: 12 }   // Tarih
+            { wch: 12 },  // ID
+            { wch: 35 },  // Müdürlük
+            { wch: 18 },  // Cihaz Türü
+            { wch: 18 },  // Arıza Türü
+            { wch: 30 },  // Talep Eden
+            { wch: 50 },  // Arıza Açıklaması
+            { wch: 50 },  // Yapılan İşler
+            { wch: 25 },  // Atanan Kişi
+            { wch: 18 },  // Durum
+            { wch: 15 }   // Tarih
         ];
         ws['!cols'] = colWidths;
+        
+        // Satır yüksekliklerini ayarla (tüm satırlar için)
+        const rowHeights = [];
+        for (let i = 0; i <= data.length; i++) {
+            rowHeights.push({ hpt: 20 }); // 20 piksel yükseklik
+        }
+        ws['!rows'] = rowHeights;
+        
+        // Hücre stillerini ayarla (başlık satırı)
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        
+        // Başlık satırı için stil
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const address = XLSX.utils.encode_col(C) + "1";
+            if (!ws[address]) continue;
+            
+            ws[address].s = {
+                font: { bold: true, sz: 11 },
+                fill: { fgColor: { rgb: "4472C4" } },
+                alignment: { horizontal: "center", vertical: "center", wrapText: false }
+            };
+        }
+        
+        // Veri satırları için stil
+        for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const address = XLSX.utils.encode_col(C) + (R + 1);
+                if (!ws[address]) continue;
+                
+                ws[address].s = {
+                    alignment: { 
+                        horizontal: "left", 
+                        vertical: "top", 
+                        wrapText: false // Text wrapping kapalı - iç içe girmeyi önler
+                    }
+                };
+            }
+        }
         
         // Workbook oluştur
         const wb = XLSX.utils.book_new();
