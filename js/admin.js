@@ -96,17 +96,19 @@ function displayMudurlukler(dataToDisplay = null) {
         <div class="pagination-info">
             Toplam ${data.length} kayıt - Sayfa ${currentPageMudurluk} / ${totalPages}
         </div>
-        ${pageData.map(item => `
+        ${pageData.map(item => {
+            const escapedName = item.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-name">${item.name}</div>
                 </div>
                 <div class="item-actions">
-                    <button class="btn-icon btn-edit" onclick="editMudurluk('${item.id}', '${item.name}')">✏️ Düzenle</button>
-                    <button class="btn-icon btn-delete" onclick="deleteMudurluk('${item.id}', '${item.name}')">🗑️ Sil</button>
+                    <button class="btn-icon btn-edit" onclick="editMudurluk('${item.id}', '${escapedName}')">✏️ Düzenle</button>
+                    <button class="btn-icon btn-delete" onclick="deleteMudurluk('${item.id}', '${escapedName}')">🗑️ Sil</button>
                 </div>
             </div>
-        `).join('')}
+        `}).join('')}
         ${totalPages > 1 ? `
             <div class="pagination">
                 <button onclick="changeMudurlukPage(${currentPageMudurluk - 1})" ${currentPageMudurluk === 1 ? 'disabled' : ''}>◀ Önceki</button>
@@ -172,17 +174,19 @@ function displayCalisanlar(dataToDisplay = null) {
         <div class="pagination-info">
             Toplam ${data.length} kayıt - Sayfa ${currentPageCalisan} / ${totalPages}
         </div>
-        ${pageData.map(item => `
+        ${pageData.map(item => {
+            const escapedName = item.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-name">${item.name}</div>
                 </div>
                 <div class="item-actions">
-                    <button class="btn-icon btn-edit" onclick="editCalisan('${item.id}', '${item.name}')">✏️ Düzenle</button>
-                    <button class="btn-icon btn-delete" onclick="deleteCalisan('${item.id}', '${item.name}')">🗑️ Sil</button>
+                    <button class="btn-icon btn-edit" onclick="editCalisan('${item.id}', '${escapedName}')">✏️ Düzenle</button>
+                    <button class="btn-icon btn-delete" onclick="deleteCalisan('${item.id}', '${escapedName}')">🗑️ Sil</button>
                 </div>
             </div>
-        `).join('')}
+        `}).join('')}
         ${totalPages > 1 ? `
             <div class="pagination">
                 <button onclick="changeCalisanPage(${currentPageCalisan - 1})" ${currentPageCalisan === 1 ? 'disabled' : ''}>◀ Önceki</button>
@@ -248,17 +252,19 @@ function displayTeknisyenler(dataToDisplay = null) {
         <div class="pagination-info">
             Toplam ${data.length} kayıt - Sayfa ${currentPageTeknisyen} / ${totalPages}
         </div>
-        ${pageData.map(item => `
+        ${pageData.map(item => {
+            const escapedName = item.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-name">${item.name}</div>
                 </div>
                 <div class="item-actions">
-                    <button class="btn-icon btn-edit" onclick="editTeknisyen('${item.id}', '${item.name}')">✏️ Düzenle</button>
-                    <button class="btn-icon btn-delete" onclick="deleteTeknisyen('${item.id}', '${item.name}')">🗑️ Sil</button>
+                    <button class="btn-icon btn-edit" onclick="editTeknisyen('${item.id}', '${escapedName}')">✏️ Düzenle</button>
+                    <button class="btn-icon btn-delete" onclick="deleteTeknisyen('${item.id}', '${escapedName}')">🗑️ Sil</button>
                 </div>
             </div>
-        `).join('')}
+        `}).join('')}
         ${totalPages > 1 ? `
             <div class="pagination">
                 <button onclick="changeTeknisyenPage(${currentPageTeknisyen - 1})" ${currentPageTeknisyen === 1 ? 'disabled' : ''}>◀ Önceki</button>
@@ -418,10 +424,14 @@ async function addMudurluk() {
 }
 
 window.editMudurluk = function(id, name) {
+    // Escape edilmiş ismi geri çevir
+    const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+    const escapedForInput = decodedName.replace(/"/g, '&quot;');
+    
     showModal('Müdürlük Düzenle', `
         <div class="form-group">
             <label>Müdürlük Adı *</label>
-            <input type="text" id="modal-input" value="${name}" required>
+            <input type="text" id="modal-input" value="${escapedForInput}" required>
         </div>
     `, async () => {
         const newName = document.getElementById('modal-input').value.trim();
@@ -442,7 +452,10 @@ window.editMudurluk = function(id, name) {
 };
 
 window.deleteMudurluk = async function(id, name) {
-    if (confirm(`"${name}" müdürlüğünü silmek istediğinizden emin misiniz?`)) {
+    // Escape edilmiş ismi geri çevir
+    const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+    
+    if (confirm(`"${decodedName}" müdürlüğünü silmek istediğinizden emin misiniz?`)) {
         try {
             await db.deleteMudurluk(id);
             showToast('Müdürlük silindi', 'success');
@@ -479,10 +492,14 @@ async function addCalisan() {
 }
 
 window.editCalisan = function(id, name) {
+    // Escape edilmiş ismi geri çevir
+    const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+    const escapedForInput = decodedName.replace(/"/g, '&quot;');
+    
     showModal('Çalışan Düzenle', `
         <div class="form-group">
             <label>Çalışan Adı *</label>
-            <input type="text" id="modal-input" value="${name}" required>
+            <input type="text" id="modal-input" value="${escapedForInput}" required>
         </div>
     `, async () => {
         const newName = document.getElementById('modal-input').value.trim();
@@ -503,7 +520,10 @@ window.editCalisan = function(id, name) {
 };
 
 window.deleteCalisan = async function(id, name) {
-    if (confirm(`"${name}" çalışanını silmek istediğinizden emin misiniz?`)) {
+    // Escape edilmiş ismi geri çevir
+    const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+    
+    if (confirm(`"${decodedName}" çalışanını silmek istediğinizden emin misiniz?`)) {
         try {
             await db.deleteCalisan(id);
             showToast('Çalışan silindi', 'success');
@@ -540,10 +560,14 @@ async function addTeknisyen() {
 }
 
 window.editTeknisyen = function(id, name) {
+    // Escape edilmiş ismi geri çevir
+    const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+    const escapedForInput = decodedName.replace(/"/g, '&quot;');
+    
     showModal('Teknisyen Düzenle', `
         <div class="form-group">
             <label>Teknisyen Adı *</label>
-            <input type="text" id="modal-input" value="${name}" required>
+            <input type="text" id="modal-input" value="${escapedForInput}" required>
         </div>
     `, async () => {
         const newName = document.getElementById('modal-input').value.trim();
@@ -564,7 +588,10 @@ window.editTeknisyen = function(id, name) {
 };
 
 window.deleteTeknisyen = async function(id, name) {
-    if (confirm(`"${name}" teknisyenini silmek istediğinizden emin misiniz?`)) {
+    // Escape edilmiş ismi geri çevir
+    const decodedName = name.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+    
+    if (confirm(`"${decodedName}" teknisyenini silmek istediğinizden emin misiniz?`)) {
         try {
             await db.deleteTeknisyen(id);
             showToast('Teknisyen silindi', 'success');
