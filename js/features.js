@@ -149,6 +149,27 @@ function getFilteredArizalarForExcel() {
 }
 
 function exportToExcel() {
+    // Özel tarih aralığı seçilmişse tarih kontrolü yap
+    if (excelTarihFilter.value === 'ozel') {
+        const startDate = document.getElementById('excel-start-date').value;
+        const endDate = document.getElementById('excel-end-date').value;
+        
+        if (!startDate && !endDate) {
+            showToast('Lütfen başlangıç veya bitiş tarihi seçin', 'warning');
+            return;
+        }
+        
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (start > end) {
+                showToast('Başlangıç tarihi bitiş tarihinden sonra olamaz', 'error');
+                return;
+            }
+        }
+    }
+    
     const filtered = getFilteredArizalarForExcel();
     
     if (filtered.length === 0) {
@@ -196,7 +217,25 @@ function exportToExcel() {
         // Dosya adı oluştur
         const tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
         const durumText = excelDurumFilter.value !== 'tumu' ? `-${excelDurumFilter.value}` : '';
-        const tarihText = excelTarihFilter.value !== 'tumu' ? `-${excelTarihFilter.value}` : '';
+        let tarihText = '';
+        
+        // Tarih filtresi için dosya adı
+        if (excelTarihFilter.value !== 'tumu') {
+            if (excelTarihFilter.value === 'ozel') {
+                const startDate = document.getElementById('excel-start-date').value;
+                const endDate = document.getElementById('excel-end-date').value;
+                
+                if (startDate && endDate) {
+                    tarihText = `-${startDate}_${endDate}`;
+                } else if (startDate) {
+                    tarihText = `-${startDate}-sonrasi`;
+                } else if (endDate) {
+                    tarihText = `-${endDate}-oncesi`;
+                }
+            } else {
+                tarihText = `-${excelTarihFilter.value}`;
+            }
+        }
         
         XLSX.writeFile(wb, `ariza-kayitlari${durumText}${tarihText}-${tarih}.xlsx`);
         
